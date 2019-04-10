@@ -72,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
                     FileProvider是一种特殊的内容提供器，可以对数据进行保护
                      */
                 {
-                    imageUri= FileProvider.getUriForFile(MainActivity.this,
+                    imageUri=FileProvider.getUriForFile(MainActivity.this,
                             "com.example.cameraalbumtest.fileprovider",outputImage);
                     /*
                     第一个参数：context对象
