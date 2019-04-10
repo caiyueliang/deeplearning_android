@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">detect_android</string>
+    <string name="take_photo">拍摄</string>
 </resources>

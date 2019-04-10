@@ -41,9 +41,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Button takephoto=findViewById(R.id.take_photo);
+        Button takePhoto=findViewById(R.id.take_photo);         //takePhoto控件
         picture=findViewById(R.id.picture);
-        takephoto.setOnClickListener(new View.OnClickListener() {
+        takePhoto.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                 File outputImage=new File(getExternalCacheDir(),"output_image.jpg");
                 /*
