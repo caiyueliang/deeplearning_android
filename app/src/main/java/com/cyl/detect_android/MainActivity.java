@@ -1,6 +1,7 @@
 package com.cyl.detect_android;
 
 import android.graphics.Bitmap;
+import android.graphics.Matrix;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
@@ -15,6 +16,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -36,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
     public static final int TAKE_PHOTO=1;       //声明一个请求码，用于识别返回的结果
     private ImageView picture;
     private Uri imageUri;
+    private static final String TAG = "MainActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,6 +107,16 @@ public class MainActivity extends AppCompatActivity {
                     try
                     {
                         Bitmap bitmap= BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri));
+                        Log.i(TAG, "[image] Height: " + String.valueOf(bitmap.getHeight()) +
+                                " Width: " + String.valueOf(bitmap.getWidth()));
+
+                        Matrix matrix = new Matrix();
+                        matrix.setScale(0.3f, 0.3f);
+                        bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(),
+                                bitmap.getHeight(), matrix, false);
+
+                        Log.i(TAG, "[image] Height: " + String.valueOf(bitmap.getHeight()) +
+                                " Width: " + String.valueOf(bitmap.getWidth()));
                         picture.setImageBitmap(bitmap);
                         //将图片解析成Bitmap对象，并把它显现出来
                     }
