@@ -37,6 +37,7 @@ import java.io.IOException;
 public class MainActivity extends AppCompatActivity {
     public static final int TAKE_PHOTO=1;       //声明一个请求码，用于识别返回的结果
     private ImageView picture;
+    private Button takePhoto;
     private Uri imageUri;
     private static final String TAG = "MainActivity";
 
@@ -44,11 +45,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Button takePhoto=findViewById(R.id.take_photo);         //takePhoto控件
-        picture=findViewById(R.id.picture);
+
+        takePhoto = (Button) findViewById(R.id.take_photo);             // takePhoto控件
+        picture = (ImageView) findViewById(R.id.picture);               // imageView控件
+
+        // 添加事件响应
         takePhoto.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
-                File outputImage=new File(getExternalCacheDir(),"output_image.jpg");
+                File outputImage = new File(getExternalCacheDir(),"output_image.jpg");
                 /*
                 创建一个File文件对象，用于存放摄像头拍下的图片，我们把这个图片命名为output_image.jpg
                 并把它存放在应用关联缓存目录下，调用getExternalCacheDir()可以得到这个目录，为什么要
