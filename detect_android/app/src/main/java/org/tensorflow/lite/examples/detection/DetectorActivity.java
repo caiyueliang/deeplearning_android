@@ -190,6 +190,8 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
           public void run() {
             LOGGER.i("Running detection on image " + currTimestamp);
             final long startTime = SystemClock.uptimeMillis();
+
+            // 执行图像识别
             final List<Classifier.Recognition> results = detector.recognizeImage(croppedBitmap);
             lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
 
@@ -208,12 +210,15 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
             }
 
             final List<Classifier.Recognition> mappedRecognitions =
-                new LinkedList<Classifier.Recognition>();
+                new LinkedList<Classifier.Recognition>();     // 存放识别结果?
 
+            // 遍历每个结果
             for (final Classifier.Recognition result : results) {
-              final RectF location = result.getLocation();
+              final RectF location = result.getLocation();    // 获取坐标
+
+              // 判断坐标不为空并且置信度大于阈值
               if (location != null && result.getConfidence() >= minimumConfidence) {
-                canvas.drawRect(location, paint);
+                canvas.drawRect(location, paint);             // 画检测框
 
                 cropToFrameTransform.mapRect(location);
 
@@ -227,6 +232,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
             computingDetection = false;
 
+            // UI界面上对应的控件上显示一些信息:坐标,耗时等
             runOnUiThread(
                 new Runnable() {
                   @Override
