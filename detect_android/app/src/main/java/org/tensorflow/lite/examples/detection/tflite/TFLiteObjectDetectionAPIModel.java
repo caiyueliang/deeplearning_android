@@ -45,13 +45,13 @@ public class TFLiteObjectDetectionAPIModel implements Classifier {
   private static final Logger LOGGER = new Logger();
 
   // Only return this many results.
-  private static final int NUM_DETECTIONS = 10;
+  private static final int NUM_DETECTIONS = 10;       // 返回的检测框最多个数
   // Float model
   private static final float IMAGE_MEAN = 128.0f;
   private static final float IMAGE_STD = 128.0f;
   // Number of threads in the java app
-  private static final int NUM_THREADS = 4;
-  private boolean isModelQuantized;
+  private static final int NUM_THREADS = 4;           // 线程个数
+  private boolean isModelQuantized;                   // 模型是否量化
   // Config values.
   private int inputSize;
   // Pre-allocated buffers.
@@ -154,6 +154,7 @@ public class TFLiteObjectDetectionAPIModel implements Classifier {
     Trace.beginSection("preprocessBitmap");
     // Preprocess the image data from 0-255 int to normalized float based
     // on the provided parameters.
+    // 图片预处理
     bitmap.getPixels(intValues, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
 
     imgData.rewind();
@@ -161,11 +162,12 @@ public class TFLiteObjectDetectionAPIModel implements Classifier {
       for (int j = 0; j < inputSize; ++j) {
         int pixelValue = intValues[i * inputSize + j];
         if (isModelQuantized) {
-          // Quantized model
+          // Quantized model  量化模型
           imgData.put((byte) ((pixelValue >> 16) & 0xFF));
           imgData.put((byte) ((pixelValue >> 8) & 0xFF));
           imgData.put((byte) (pixelValue & 0xFF));
-        } else { // Float model
+        } else {
+          // Float model      浮点模型
           imgData.putFloat((((pixelValue >> 16) & 0xFF) - IMAGE_MEAN) / IMAGE_STD);
           imgData.putFloat((((pixelValue >> 8) & 0xFF) - IMAGE_MEAN) / IMAGE_STD);
           imgData.putFloat(((pixelValue & 0xFF) - IMAGE_MEAN) / IMAGE_STD);
@@ -174,22 +176,22 @@ public class TFLiteObjectDetectionAPIModel implements Classifier {
     }
     Trace.endSection(); // preprocessBitmap
 
-    // Copy the input data into TensorFlow.
+    // Copy the input data into TensorFlow.   拷贝输入数据到TensorFlow
     Trace.beginSection("feed");
-    outputLocations = new float[1][NUM_DETECTIONS][4];
-    outputClasses = new float[1][NUM_DETECTIONS];
-    outputScores = new float[1][NUM_DETECTIONS];
-    numDetections = new float[1];
+    outputLocations = new float[1][NUM_DETECTIONS][4];    // 输出坐标
+    outputClasses = new float[1][NUM_DETECTIONS];         // 输出类别
+    outputScores = new float[1][NUM_DETECTIONS];          // 输出评分
+    numDetections = new float[1];                         // 检测框个数
 
-    Object[] inputArray = {imgData};
-    Map<Integer, Object> outputMap = new HashMap<>();
+    Object[] inputArray = {imgData};                      // 输入图片
+    Map<Integer, Object> outputMap = new HashMap<>();     // 输出信息存放到outputMap，作为参数传给TF
     outputMap.put(0, outputLocations);
     outputMap.put(1, outputClasses);
     outputMap.put(2, outputScores);
     outputMap.put(3, numDetections);
     Trace.endSection();
 
-    // Run the inference call.
+    // Run the inference call.      模型推理
     Trace.beginSection("run");
     tfLite.runForMultipleInputsOutputs(inputArray, outputMap);
     Trace.endSection();
