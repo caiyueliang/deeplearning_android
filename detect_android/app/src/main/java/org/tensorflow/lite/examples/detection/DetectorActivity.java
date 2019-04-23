@@ -48,12 +48,14 @@ import org.tensorflow.lite.examples.detection.tracking.MultiBoxTracker;
  */
 public class DetectorActivity extends CameraActivity implements OnImageAvailableListener {
   private static final Logger LOGGER = new Logger();
+  private static final String MODEL_USE = "FaceBoxes";
 
   // Configuration values for the prepackaged SSD model.
-  private static final int TF_OD_API_INPUT_SIZE = 300;
-  private static final boolean TF_OD_API_IS_QUANTIZED = true;
-  private static final String TF_OD_API_MODEL_FILE = "detect.tflite";
-  private static final String TF_OD_API_LABELS_FILE = "file:///android_asset/labelmap.txt";
+  private static int TF_OD_API_INPUT_SIZE = 300;
+  private static boolean TF_OD_API_IS_QUANTIZED = true;
+  private static String TF_OD_API_MODEL_FILE = "detect.tflite";
+  private static String TF_OD_API_LABELS_FILE = "file:///android_asset/labelmap.txt";
+
   private static final DetectorMode MODE = DetectorMode.TF_OD_API;
   // Minimum detection confidence to track a detection.
   private static final float MINIMUM_CONFIDENCE_TF_OD_API = 0.5f;
@@ -97,14 +99,30 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     int cropSize = TF_OD_API_INPUT_SIZE;
 
     try {
-      detector =
-          TFLiteObjectDetectionAPIModel.create(
-              getAssets(),
-              TF_OD_API_MODEL_FILE,
-              TF_OD_API_LABELS_FILE,
-              TF_OD_API_INPUT_SIZE,
-              TF_OD_API_IS_QUANTIZED);
-      cropSize = TF_OD_API_INPUT_SIZE;
+      // TODO
+      if (MODEL_USE == "SSD") {
+        detector = TFLiteObjectDetectionAPIModel.create(
+                        getAssets(),
+                        TF_OD_API_MODEL_FILE,
+                        TF_OD_API_LABELS_FILE,
+                        TF_OD_API_INPUT_SIZE,
+                        TF_OD_API_IS_QUANTIZED);
+        cropSize = TF_OD_API_INPUT_SIZE;
+      } else {
+        TF_OD_API_INPUT_SIZE = 1024;
+        TF_OD_API_IS_QUANTIZED = false;
+        TF_OD_API_MODEL_FILE = "faceboxes_float.tflite";
+        TF_OD_API_LABELS_FILE = "file:///android_asset/faceboxes_label.txt";
+
+        detector = TFLiteObjectDetectionAPIModel.create(
+                        getAssets(),
+                        TF_OD_API_MODEL_FILE,
+                        TF_OD_API_LABELS_FILE,
+                        TF_OD_API_INPUT_SIZE,
+                        TF_OD_API_IS_QUANTIZED);
+        cropSize = TF_OD_API_INPUT_SIZE;
+      }
+
     } catch (final IOException e) {
       e.printStackTrace();
       LOGGER.e("Exception initializing classifier!", e);
