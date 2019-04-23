@@ -62,7 +62,7 @@ public class TFLiteObjectDetectionAPIModel implements Classifier {
   private float[][][] outputLocations;
   // outputClasses: array of shape [Batchsize, NUM_DETECTIONS]
   // contains the classes of detected boxes
-  private float[][] outputClasses;
+  private float[][][] outputClasses;
   // outputScores: array of shape [Batchsize, NUM_DETECTIONS]
   // contains the scores of detected boxes
   private float[][] outputScores;
@@ -140,7 +140,7 @@ public class TFLiteObjectDetectionAPIModel implements Classifier {
 
     d.tfLite.setNumThreads(NUM_THREADS);
     d.outputLocations = new float[1][NUM_DETECTIONS][4];
-    d.outputClasses = new float[1][NUM_DETECTIONS];
+    d.outputClasses = new float[1][NUM_DETECTIONS][2];
     d.outputScores = new float[1][NUM_DETECTIONS];
     d.numDetections = new float[1];
     return d;
@@ -178,17 +178,23 @@ public class TFLiteObjectDetectionAPIModel implements Classifier {
 
     // Copy the input data into TensorFlow.   拷贝输入数据到TensorFlow
     Trace.beginSection("feed");
-    outputLocations = new float[1][NUM_DETECTIONS][4];    // 输出坐标
-    outputClasses = new float[1][NUM_DETECTIONS];         // 输出类别
-    outputScores = new float[1][NUM_DETECTIONS];          // 输出评分
-    numDetections = new float[1];                         // 检测框个数
+    // TODO
+    outputLocations = new float[1][21824][4];       // 输出坐标
+    outputClasses = new float[1][21824][2];         // 输出类别
+    // outputLocations = new float[1][NUM_DETECTIONS][4];    // 输出坐标
+    // outputClasses = new float[1][NUM_DETECTIONS];         // 输出类别
+    // outputScores = new float[1][NUM_DETECTIONS];          // 输出评分
+    // numDetections = new float[1];                         // 检测框个数
 
     Object[] inputArray = {imgData};                      // 输入图片
+
+    // TODO
     Map<Integer, Object> outputMap = new HashMap<>();     // 输出信息存放到outputMap，作为参数传给TF
-    outputMap.put(0, outputLocations);
-    outputMap.put(1, outputClasses);
-    outputMap.put(2, outputScores);
-    outputMap.put(3, numDetections);
+    outputMap.put(0, outputClasses);
+    outputMap.put(1, outputLocations);
+
+    // outputMap.put(2, outputScores);
+    // outputMap.put(3, numDetections);
     Trace.endSection();
 
     // Run the inference call.      模型推理
@@ -213,7 +219,7 @@ public class TFLiteObjectDetectionAPIModel implements Classifier {
       recognitions.add(
           new Recognition(
               "" + i,
-              labels.get((int) outputClasses[0][i] + labelOffset),
+              labels.get((int) outputClasses[0][i][0] + labelOffset),
               outputScores[0][i],
               detection));
     }
