@@ -20,6 +20,7 @@ import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.RectF;
 import android.os.Trace;
+import android.util.Log;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -42,6 +43,7 @@ import org.tensorflow.lite.examples.detection.env.Logger;
  * github.com/tensorflow/models/tree/master/research/object_detection
  */
 public class TFLiteObjectDetectionAPIModel implements Classifier {
+  private static final String TAG = "ObjectDetection";
   private static final Logger LOGGER = new Logger();
 
   // Only return this many results.
@@ -192,15 +194,18 @@ public class TFLiteObjectDetectionAPIModel implements Classifier {
     Map<Integer, Object> outputMap = new HashMap<>();     // 输出信息存放到outputMap，作为参数传给TF
     outputMap.put(0, outputClasses);
     outputMap.put(1, outputLocations);
-
     // outputMap.put(2, outputScores);
     // outputMap.put(3, numDetections);
+
     Trace.endSection();
 
     // Run the inference call.      模型推理
     Trace.beginSection("run");
     tfLite.runForMultipleInputsOutputs(inputArray, outputMap);
     Trace.endSection();
+
+    Log.i(TAG, "outputClasses " + outputMap.get(0).toString());
+    Log.i(TAG, "outputLocations " +  outputMap.get(1).toString());
 
     // Show the best detections.
     // after scaling them back to the input size.
