@@ -43,7 +43,7 @@ import org.tensorflow.lite.examples.detection.env.Logger;
  * github.com/tensorflow/models/tree/master/research/object_detection
  */
 public class TFLiteObjectDetectionAPIModel implements Classifier {
-  private static final String TAG = "ObjectDetection";
+  private static final String TAG = "TFObjectDetection";
   private static final Logger LOGGER = new Logger();
 
   // Only return this many results.
@@ -204,8 +204,17 @@ public class TFLiteObjectDetectionAPIModel implements Classifier {
     tfLite.runForMultipleInputsOutputs(inputArray, outputMap);
     Trace.endSection();
 
-    Log.i(TAG, "outputClasses " + outputMap.get(0).toString());
-    Log.i(TAG, "outputLocations " +  outputMap.get(1).toString());
+    float[][][] loc_preds = (float[][][])outputMap.get(1);
+    for (int i = 0; i < 21824; i++) {
+        Log.i(TAG, String.format("outputClasses %f, %f, %f, %f", loc_preds[0][i][0],
+                loc_preds[0][i][1], loc_preds[0][i][2], loc_preds[0][i][3]));
+    }
+
+    float[][][] classes_preds = (float[][][])outputMap.get(0);
+    for (int i = 0; i < 21824; i++) {
+        Log.i(TAG, String.format("outputClasses %f, %f", classes_preds[0][i][0], classes_preds[0][i][1]));
+    }
+
 
     // Show the best detections.
     // after scaling them back to the input size.
