@@ -7,13 +7,14 @@ import java.util.ArrayList;
 public class DataEncoder {
     private static final String TAG = "TFObjectDetection";
     private int boxesNum = 21824;
+    private int layersNum = 3;
+
     private float scale;
-    private float[] steps = new float[3];
-    private float[] sizes = new float[3];
+    private float[] steps = new float[layersNum];
+    private float[] sizes = new float[layersNum];
     private ArrayList<Integer[]> aspect_ratios = new ArrayList<Integer[]>();
-    private int[] feature_map_sizes = new int[3];
+    private int[] feature_map_sizes = new int[layersNum];
     private ArrayList<Integer[]> density = new ArrayList<Integer[]>();
-    private int num_layers = 3;
     private float[][] boxes = new float[this.boxesNum][4];     // [21824, 4] (cx, cy, w, h)
 
     public DataEncoder(float imageSize) {
@@ -46,7 +47,7 @@ public class DataEncoder {
 
         int curBoxIndex = 0;
 
-        for (int layerIndex = 0; layerIndex < 3; layerIndex++) {    // 遍历3层中的每一层
+        for (int layerIndex = 0; layerIndex < this.layersNum; layerIndex++) {    // 遍历3层中的每一层
             int fmsize = this.feature_map_sizes[layerIndex];        // 分别为32, 16, 8
 
             // 生成32×32个，16×16个, 8×8个二元组，如：(0,0), (0,1), (0,2), ... (1,0), (1,1), ..., (32,32)
@@ -55,7 +56,7 @@ public class DataEncoder {
                     float center_x = (float)((box_x + 0.5) * this.steps[layerIndex]);   // 中心点坐标x
                     float center_y = (float)((box_y + 0.5) * this.steps[layerIndex]);   // 中心点坐标y
 
-                    float s = sizes[layerIndex];
+                    float s = this.sizes[layerIndex];
                     for (int ratios_i = 0; ratios_i < this.aspect_ratios.get(layerIndex).length; ratios_i++) {
                         Integer ar = this.aspect_ratios.get(layerIndex)[ratios_i];
 
@@ -86,6 +87,13 @@ public class DataEncoder {
                     this.boxes[i][2], this.boxes[i][3]));
         }
         Log.i(TAG, String.format("curBoxIndex %d", curBoxIndex));
+        Log.i(TAG, String.format("aspect_ratios %d", this.aspect_ratios.get(0).length));
+        Log.i(TAG, String.format("aspect_ratios %d", this.aspect_ratios.get(1).length));
+        Log.i(TAG, String.format("aspect_ratios %d", this.aspect_ratios.get(2).length));
+
+        Log.i(TAG, String.format("density %d", this.density.get(0).length));
+        Log.i(TAG, String.format("density %d", this.density.get(1).length));
+        Log.i(TAG, String.format("density %d", this.density.get(2).length));
     }
 
     public int getBoxesNum() {return this.boxesNum;}
