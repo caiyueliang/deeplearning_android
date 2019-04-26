@@ -63,8 +63,12 @@ public class DataEncoder {
                         Integer ar = this.aspect_ratios.get(layerIndex)[ratios_i];
 
                         if (layerIndex == 0) {
-                            for (float dy = 0; dy < this.density.get(ratios_i).length; dy++) {
-                                for (float dx = 0; dx < this.density.get(ratios_i).length; dx++) {
+                            for (int dx_i = 0; dx_i < this.density.get(ratios_i).length; dx_i++) {
+                                for (int dy_i = 0; dy_i < this.density.get(ratios_i).length; dy_i++) {
+
+                                    float dx = this.density.get(ratios_i)[dx_i];
+                                    float dy = this.density.get(ratios_i)[dy_i];
+
                                     this.boxes[curBoxIndex][0] = (float)(center_x + dx / 8.0 * s * ar);
                                     this.boxes[curBoxIndex][1] = (float)(center_y + dy / 8.0 * s * ar);
                                     this.boxes[curBoxIndex][2] = s * ar;
@@ -84,11 +88,11 @@ public class DataEncoder {
             }
         }
 
-        for (int i = 0; i < 5000; i++) {
-            Log.i(TAG, String.format("%d: %f, %f, %f, %f", i, this.boxes[i][0], this.boxes[i][1],
-                    this.boxes[i][2], this.boxes[i][3]));
-        }
-        Log.i(TAG, String.format("curBoxIndex %d", curBoxIndex));
+//        for (int i = 0; i < this.boxesNum; i++) {
+//            Log.i(TAG, String.format("%d: %f, %f, %f, %f", i, this.boxes[i][0], this.boxes[i][1],
+//                    this.boxes[i][2], this.boxes[i][3]));
+//        }
+//        Log.i(TAG, String.format("curBoxIndex %d", curBoxIndex));
 //        Log.i(TAG, String.format("aspect_ratios %d", this.aspect_ratios.get(0).length));
 //        Log.i(TAG, String.format("aspect_ratios %d", this.aspect_ratios.get(1).length));
 //        Log.i(TAG, String.format("aspect_ratios %d", this.aspect_ratios.get(2).length));
