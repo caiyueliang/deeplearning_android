@@ -75,6 +75,7 @@ public class TFLiteObjectDetectionAPIModel implements Classifier {
   private ByteBuffer imgData;
 
   private Interpreter tfLite;
+  private DataEncoder dataEncoder = new DataEncoder(1024);
 
   private TFLiteObjectDetectionAPIModel() {}
 
@@ -181,8 +182,8 @@ public class TFLiteObjectDetectionAPIModel implements Classifier {
     // Copy the input data into TensorFlow.   拷贝输入数据到TensorFlow
     Trace.beginSection("feed");
     // TODO
-    outputLocations = new float[1][21824][4];       // 输出坐标
-    outputClasses = new float[1][21824][2];         // 输出类别
+    outputLocations = new float[1][dataEncoder.getBoxesNum()][4];       // 输出坐标
+    outputClasses = new float[1][dataEncoder.getBoxesNum()][2];         // 输出类别
     // outputLocations = new float[1][NUM_DETECTIONS][4];    // 输出坐标
     // outputClasses = new float[1][NUM_DETECTIONS];         // 输出类别
     // outputScores = new float[1][NUM_DETECTIONS];          // 输出评分
