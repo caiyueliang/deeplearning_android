@@ -21,14 +21,14 @@ public class DataEncoder {
         this.scale = imageSize;
 
         // steps = [s / scale for s in (32, 64, 128)]      // [0.03125, 0.0625, 0.125]
-        this.steps[0] = 32 / this.scale;
-        this.steps[1] = 64 / this.scale;
-        this.steps[2] = 128 / this.scale;
+        this.steps[0] = (float)(32.0 / this.scale);
+        this.steps[1] = (float)(64.0 / this.scale);
+        this.steps[2] = (float)(128.0 / this.scale);
 
         // sizes = [s / scale for s in (32, 256, 512)]     // [0.03125, 0.25, 0.5]     当32改为64时，achor与label匹配的正样本数目更多
-        this.sizes[0] = 32 / this.scale;
-        this.sizes[1] = 256 / this.scale;
-        this.sizes[2] = 512 / this.scale;
+        this.sizes[0] = (float)(32.0 / this.scale);
+        this.sizes[1] = (float)(256.0 / this.scale);
+        this.sizes[2] = (float)(512.0 / this.scale);
 
         // aspect_ratios = ((1, 2, 4), (1,), (1,))
         this.aspect_ratios.add(new Integer[]{1, 2, 4});
@@ -37,8 +37,8 @@ public class DataEncoder {
 
         // feature_map_sizes = (32, 16, 8)
         this.feature_map_sizes[0] = 32;
-        this.feature_map_sizes[0] = 16;
-        this.feature_map_sizes[0] = 8;
+        this.feature_map_sizes[1] = 16;
+        this.feature_map_sizes[2] = 8;
 
         //density = [[-3, -1, 1, 3], [-1, 1], [0]]        // density for output layer1
         this.density.add(new Integer[]{-3, -1, 1, 3});
@@ -53,6 +53,8 @@ public class DataEncoder {
             // 生成32×32个，16×16个, 8×8个二元组，如：(0,0), (0,1), (0,2), ... (1,0), (1,1), ..., (32,32)
             for (float box_y = 0; box_y < fmsize; box_y++) {
                 for (float box_x = 0; box_x < fmsize; box_x++) {
+                    // cx = (w + 0.5)*steps[i]                     # 中心点坐标x
+                    // cy = (h + 0.5)*steps[i]                     # 中心点坐标y
                     float center_x = (float)((box_x + 0.5) * this.steps[layerIndex]);   // 中心点坐标x
                     float center_y = (float)((box_y + 0.5) * this.steps[layerIndex]);   // 中心点坐标y
 
@@ -82,18 +84,18 @@ public class DataEncoder {
             }
         }
 
-        for (int i = 0; i < 1344; i++) {
+        for (int i = 0; i < 5000; i++) {
             Log.i(TAG, String.format("%d: %f, %f, %f, %f", i, this.boxes[i][0], this.boxes[i][1],
                     this.boxes[i][2], this.boxes[i][3]));
         }
         Log.i(TAG, String.format("curBoxIndex %d", curBoxIndex));
-        Log.i(TAG, String.format("aspect_ratios %d", this.aspect_ratios.get(0).length));
-        Log.i(TAG, String.format("aspect_ratios %d", this.aspect_ratios.get(1).length));
-        Log.i(TAG, String.format("aspect_ratios %d", this.aspect_ratios.get(2).length));
-
-        Log.i(TAG, String.format("density %d", this.density.get(0).length));
-        Log.i(TAG, String.format("density %d", this.density.get(1).length));
-        Log.i(TAG, String.format("density %d", this.density.get(2).length));
+//        Log.i(TAG, String.format("aspect_ratios %d", this.aspect_ratios.get(0).length));
+//        Log.i(TAG, String.format("aspect_ratios %d", this.aspect_ratios.get(1).length));
+//        Log.i(TAG, String.format("aspect_ratios %d", this.aspect_ratios.get(2).length));
+//
+//        Log.i(TAG, String.format("density %d", this.density.get(0).length));
+//        Log.i(TAG, String.format("density %d", this.density.get(1).length));
+//        Log.i(TAG, String.format("density %d", this.density.get(2).length));
     }
 
     public int getBoxesNum() {return this.boxesNum;}
