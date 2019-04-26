@@ -77,17 +77,15 @@ public class DataEncoder {
                             curBoxIndex++;
                         }
                     }
-
-
                 }
             }
         }
 
-        Log.i(TAG, String.format("curBoxIndex %d", curBoxIndex));
         for (int i = 0; i < this.boxesNum; i++) {
             Log.i(TAG, String.format("%d: %f, %f, %f, %f", i, this.boxes[i][0], this.boxes[i][1],
                     this.boxes[i][2], this.boxes[i][3]));
         }
+        Log.i(TAG, String.format("curBoxIndex %d", curBoxIndex));
     }
 
     public int getBoxesNum() {return this.boxesNum;}

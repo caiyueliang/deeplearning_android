@@ -205,16 +205,17 @@ public class TFLiteObjectDetectionAPIModel implements Classifier {
     tfLite.runForMultipleInputsOutputs(inputArray, outputMap);
     Trace.endSection();
 
-    float[][][] locPredict = (float[][][])outputMap.get(1);
-    for (int i = 0; i < 21824; i++) {
-        Log.i(TAG, String.format("outputClasses %f, %f, %f, %f", locPredict[0][i][0],
-                locPredict[0][i][1], locPredict[0][i][2], locPredict[0][i][3]));
-    }
-
-    float[][][] classPredict = (float[][][])outputMap.get(0);
-    for (int i = 0; i < 21824; i++) {
-        Log.i(TAG, String.format("outputClasses %f, %f", classPredict[0][i][0], classPredict[0][i][1]));
-    }
+    // TODO
+//    float[][][] locPredict = (float[][][])outputMap.get(1);
+//    for (int i = 0; i < 21824; i++) {
+//        Log.i(TAG, String.format("outputClasses %f, %f, %f, %f", locPredict[0][i][0],
+//                locPredict[0][i][1], locPredict[0][i][2], locPredict[0][i][3]));
+//    }
+//
+//    float[][][] classPredict = (float[][][])outputMap.get(0);
+//    for (int i = 0; i < 21824; i++) {
+//        Log.i(TAG, String.format("outputClasses %f, %f", classPredict[0][i][0], classPredict[0][i][1]));
+//    }
 
 
     // Show the best detections.
