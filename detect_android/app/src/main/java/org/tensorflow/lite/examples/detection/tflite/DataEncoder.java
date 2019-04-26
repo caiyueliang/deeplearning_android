@@ -81,7 +81,7 @@ public class DataEncoder {
             }
         }
 
-        for (int i = 0; i < this.boxesNum; i++) {
+        for (int i = 0; i < 1344; i++) {
             Log.i(TAG, String.format("%d: %f, %f, %f, %f", i, this.boxes[i][0], this.boxes[i][1],
                     this.boxes[i][2], this.boxes[i][3]));
         }
