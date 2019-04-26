@@ -103,4 +103,93 @@ public class DataEncoder {
     }
 
     public int getBoxesNum() {return this.boxesNum;}
+
+    // def nms(self, bboxes, scores, threshold=0.5):
+    //     '''
+    //     bboxes(tensor) [N,4]
+    //     scores(tensor) [N,]
+    //     '''
+    //     x1 = bboxes[:,0]
+    //     y1 = bboxes[:,1]
+    //     x2 = bboxes[:,2]
+    //     y2 = bboxes[:,3]
+    //     areas = (x2-x1) * (y2-y1)
+    //
+    //     _,order = scores.sort(0,descending=True)
+    //     keep = []
+    //     while order.numel() > 0:
+    //         i = order[0]
+    //         keep.append(i)
+    //
+    //         if order.numel() == 1:
+    //             break
+    //
+    //         xx1 = x1[order[1:]].clamp(min=x1[i].item())
+    //         yy1 = y1[order[1:]].clamp(min=y1[i].item())
+    //         xx2 = x2[order[1:]].clamp(max=x2[i].item())
+    //         yy2 = y2[order[1:]].clamp(max=y2[i].item())
+    //
+    //         w = (xx2-xx1).clamp(min=0)
+    //         h = (yy2-yy1).clamp(min=0)
+    //         inter = w*h
+    //
+    //         ovr = inter / (areas[i] + areas[order[1:]] - inter)
+    //         ids = (ovr<=threshold).nonzero().squeeze()
+    //         if ids.numel() == 0:
+    //             break
+    //         order = order[ids+1]
+    //     return torch.LongTensor(keep)
+
+
+
+    // def decode(self, loc, conf, use_gpu, nms_threshold=0.5):
+    //     '''
+    //     將预测出的 loc/conf转换成真实的人脸框
+    //     loc [21842, 4]
+    //     conf [21824, 2]
+    //     '''
+    //     print('loc', loc.size(), loc)
+    //     print('conf', conf.size(), conf)
+    //     variances = [0.1, 0.2]
+    //
+    //     // variances = [0.1, 0.2]
+    //     // cxcy = (boxes[:, :2] + boxes[:, 2:])/2 - default_boxes[:, :2]       // [21824,2]
+    //     // cxcy /= variances[0] * default_boxes[:, 2:]
+    //     // wh = (boxes[:, 2:] - boxes[:, :2]) / default_boxes[:, 2:]           // [21824,2]  为什么会出现0宽度？？
+    //     // wh = torch.log(wh) / variances[1]                                   // Variable. log求自然对数
+    //     if use_gpu:
+    //         cxcy = loc[:, :2].cuda() * variances[0] * self.default_boxes[:, 2:].cuda() + self.default_boxes[:, :2].cuda()
+    //         wh = torch.exp(loc[:, 2:] * variances[1]) * self.default_boxes[:, 2:].cuda()
+    //         boxes = torch.cat([cxcy-wh/2, cxcy+wh/2], 1)                        // [21824,4]
+    //     else:
+    //         cxcy = loc[:, :2] * variances[0] * self.default_boxes[:, 2:] + self.default_boxes[:, :2]
+    //         wh = torch.exp(loc[:, 2:] * variances[1]) * self.default_boxes[:, 2:]   // 返回一个新张量，包含输入input张量每个元素的指数
+    //         boxes = torch.cat([cxcy-wh/2, cxcy+wh/2], 1)                        // [21824,4]
+    //
+    //     print('cxcy', cxcy.size(), cxcy)
+    //     print('wh', wh.size(), wh)
+    //     print('boxes', boxes.size(), boxes)
+    //
+    //     conf[:, 0] = 0.4    // 置信度第0列（背景）设为0.4，下面再取最大值，目的是为了过滤置信度小于0.4的标签
+    //     max_conf, labels = conf.max(1)                          // [21842,1]
+    //
+    //     // print(max_conf)
+    //     // print('labels', labels.long().sum().item())
+    //     if labels.long().sum().item() is 0:                     // 标签和为0？表示图片没有标签？
+    //         sconf, slabel = conf.max(0)
+    //         max_conf[slabel[0:5]] = sconf[0:5]
+    //         labels[slabel[0:5]] = 1
+    //
+    //     // print('labels', labels)
+    //     ids = labels.nonzero().squeeze(1)
+    //     print('ids', ids)
+    //     // print('boxes', boxes.size(), boxes[ids])
+    //
+    //     keep = self.nms(boxes[ids], max_conf[ids], nms_threshold)   // .squeeze(1))
+    //
+    //     return boxes[ids][keep], labels[ids][keep], max_conf[ids][keep]
+    public int decode() {
+
+        return 0;
+    }
 }
