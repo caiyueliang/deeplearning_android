@@ -21,6 +21,8 @@ public class DataEncoder {
     private float[][] boxes = new float[this.boxesNum][4];     // [21824, 4] (cx, cy, w, h)
 
     private NMS nms;
+    private int topK = 50;
+    private float nmsThresh = (float) 0.5;
 
     public DataEncoder(float imageSize) {
         this.scale = imageSize;
@@ -212,14 +214,36 @@ public class DataEncoder {
         Map<Integer, Object> output = new HashMap<>();  // 返回输出结果
 
         float back_threshold = (float)0.4;              // 背景过滤置信度
-        float[][] boxes = new float[][]
-
+        // float[][] boxes = new float[][]
+        ArrayList<Float[]> boxesArray = new ArrayList<>();
+        ArrayList<Float> sourcesArray = new ArrayList<>();
         for (int i = 0; i < loc.length; i++) {
             if (conf[i][0] > back_threshold) {
+                Float[] box = new Float[4];
+                box[0] = loc[i][0];
+                box[1] = loc[i][1];
+                box[2] = loc[i][2];
+                box[3] = loc[i][3];
+                Float source = conf[i][0];
 
+                boxesArray.add(box);
+                sourcesArray.add(source);
             }
         }
 
+        float[][] boxes = new float[boxesArray.size()][4];
+        float[] source = new float[sourcesArray.size()];
+
+        for(int i = 0; i < boxesArray.size(); i++) {
+            Float[] box = boxesArray.get(i);
+            boxes[i][0] = box[0];
+            boxes[i][1] = box[1];
+            boxes[i][2] = box[2];
+            boxes[i][3] = box[3];
+            source[i] = sourcesArray.get(i);
+        }
+
+        nms.nmsScoreFilter(boxes, source, this.topK, this.nmsThresh);
 //        /*将list转化为Integer[]*/
 //        ArrayList<Integer> intList = new ArrayList<Integer>();//泛型为Integer
 //        intList.add(123);
@@ -235,6 +259,11 @@ public class DataEncoder {
 //        System.out.println(c.getClass());
 //        System.out.println(b.getClass());
 
+//        int[] d = new int[intList.size()];
+//        for(int i = 0;i<intList.size();i++){
+//            d[i] = intList.get(i);
+//        }
+//        System.out.println(Arrays.toString(d));
         return output;
     }
 }
