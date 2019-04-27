@@ -4,6 +4,8 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DataEncoder {
     private static final String TAG = "TFObjectDetection";
@@ -206,8 +208,16 @@ public class DataEncoder {
     //     // keep tensor([10,  0])
     //
     //     return boxes[ids][keep], labels[ids][keep], max_conf[ids][keep]
-    public void decode() {
+    public Map<Integer, Object> decode(float[][] loc, float[][] conf, float nms_threshold) {
+        Map<Integer, Object> output = new HashMap<>();  // 返回输出结果
 
-        
+        float back_threshold = (float)0.4;              // 背景过滤置信度
+
+        for (int i = 0; i < loc.length; i++) {
+            if (conf[i][0] > back_threshold) {
+
+            }
+        }
+        return output;
     }
 }
