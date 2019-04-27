@@ -212,12 +212,29 @@ public class DataEncoder {
         Map<Integer, Object> output = new HashMap<>();  // 返回输出结果
 
         float back_threshold = (float)0.4;              // 背景过滤置信度
+        float[][] boxes = new float[][]
 
         for (int i = 0; i < loc.length; i++) {
             if (conf[i][0] > back_threshold) {
 
             }
         }
+
+//        /*将list转化为Integer[]*/
+//        ArrayList<Integer> intList = new ArrayList<Integer>();//泛型为Integer
+//        intList.add(123);
+//        intList.add(234);
+//        intList.add(345);
+//        Integer[] b = new Integer[intList.size()];//当泛型为Integer时，需要
+//        b = (Integer[])intList.toArray(b);      //以Integer类来作为数组基本元素
+//        System.out.println(Arrays.toString(b));//，否则输出会报错。
+//
+//        Integer[] c = (Integer[])intList.toArray();//此处编译没问题，但是涉及泛型
+//        System.out.println(Arrays.toString(c)); //向下转换，运行会出错
+//
+//        System.out.println(c.getClass());
+//        System.out.println(b.getClass());
+
         return output;
     }
 }
