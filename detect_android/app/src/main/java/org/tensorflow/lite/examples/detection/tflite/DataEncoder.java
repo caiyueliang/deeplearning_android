@@ -3,6 +3,7 @@ package org.tensorflow.lite.examples.detection.tflite;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class DataEncoder {
     private static final String TAG = "TFObjectDetection";
@@ -16,6 +17,8 @@ public class DataEncoder {
     private int[] feature_map_sizes = new int[layersNum];
     private ArrayList<Integer[]> density = new ArrayList<Integer[]>();
     private float[][] boxes = new float[this.boxesNum][4];     // [21824, 4] (cx, cy, w, h)
+
+    private NMS nms;
 
     public DataEncoder(float imageSize) {
         this.scale = imageSize;
@@ -104,6 +107,18 @@ public class DataEncoder {
 
     public int getBoxesNum() {return this.boxesNum;}
 
+
+//    public int[] nms(float[][] boxes, float[] scores, float threshold) {
+//        float[] areas = new float[boxes.length];
+//
+//        for (int i = 0; i < boxes.length; i++) {
+//            areas[i] = (boxes[i][2] - boxes[i][0]) * (boxes[i][3] - boxes[i][1]);
+//        }
+//
+//        Arrays.sort(scores);
+//        Log.i(TAG, String.format("curBoxIndex %d", curBoxIndex));
+//
+//    }
     // def nms(self, bboxes, scores, threshold=0.5):
     //     '''
     //     bboxes(tensor) [N,4]
@@ -185,11 +200,14 @@ public class DataEncoder {
     //     print('ids', ids)
     //     // print('boxes', boxes.size(), boxes[ids])
     //
+    //     // ids tensor([4301, 4303, 4322, 4324, 4972, 4974, 4993, 4995, 8126, 8147, 8168, 8777,
+    //     //    8798, 8819, 8840, 8861, 9470, 9491, 9512])
     //     keep = self.nms(boxes[ids], max_conf[ids], nms_threshold)   // .squeeze(1))
+    //     // keep tensor([10,  0])
     //
     //     return boxes[ids][keep], labels[ids][keep], max_conf[ids][keep]
-    public int decode() {
+    public void decode() {
 
-        return 0;
+        
     }
 }
