@@ -18,16 +18,17 @@ public class DataEncoder {
     private ArrayList<Integer[]> aspect_ratios = new ArrayList<Integer[]>();
     private int[] feature_map_sizes = new int[layersNum];
     private ArrayList<Integer[]> density = new ArrayList<Integer[]>();
-    private float[][] boxes = new float[this.boxesNum][4];     // [21824, 4] (cx, cy, w, h)
+    private float[][] boxes = new float[this.boxesNum][4];      // [21824, 4] (cx, cy, w, h)
 
     private NMS nms;
     private int topK = 50;
-    private float nmsThresh = (float) 0.5;
+    private float nmsThreshold = (float) 0.5;                   // NMS阈值
+    private float backThreshold = (float) 0.4;                  // 背景过滤置信度
 
     public DataEncoder(float imageSize) {
         this.scale = imageSize;
 
-        // steps = [s / scale for s in (32, 64, 128)]      // [0.03125, 0.0625, 0.125]
+        // steps = [s / scale for s in (32, 64, 128)]           // [0.03125, 0.0625, 0.125]
         this.steps[0] = (float)(32.0 / this.scale);
         this.steps[1] = (float)(64.0 / this.scale);
         this.steps[2] = (float)(128.0 / this.scale);
@@ -210,21 +211,20 @@ public class DataEncoder {
     //     // keep tensor([10,  0])
     //
     //     return boxes[ids][keep], labels[ids][keep], max_conf[ids][keep]
-    public Map<Integer, Object> decode(float[][] loc, float[][] conf, float nms_threshold) {
+    public Map<Integer, Object> decode(float[][] loc, float[][] conf) {
         Map<Integer, Object> output = new HashMap<>();  // 返回输出结果
 
-        float back_threshold = (float)0.4;              // 背景过滤置信度
-        // float[][] boxes = new float[][]
         ArrayList<Float[]> boxesArray = new ArrayList<>();
         ArrayList<Float> sourcesArray = new ArrayList<>();
         for (int i = 0; i < loc.length; i++) {
-            if (conf[i][0] > back_threshold) {
+            // conf[i][0]是背景，conf[i][1]是人脸
+            if (conf[i][0] < this.backThreshold) {
                 Float[] box = new Float[4];
                 box[0] = loc[i][0];
                 box[1] = loc[i][1];
                 box[2] = loc[i][2];
                 box[3] = loc[i][3];
-                Float source = conf[i][0];
+                Float source = conf[i][1];
 
                 boxesArray.add(box);
                 sourcesArray.add(source);
@@ -234,7 +234,7 @@ public class DataEncoder {
         float[][] boxes = new float[boxesArray.size()][4];
         float[] source = new float[sourcesArray.size()];
 
-        for(int i = 0; i < boxesArray.size(); i++) {
+        for (int i = 0; i < boxesArray.size(); i++) {
             Float[] box = boxesArray.get(i);
             boxes[i][0] = box[0];
             boxes[i][1] = box[1];
@@ -243,7 +243,26 @@ public class DataEncoder {
             source[i] = sourcesArray.get(i);
         }
 
-        nms.nmsScoreFilter(boxes, source, this.topK, this.nmsThresh);
+        int[] outputIndex = nms.nmsScoreFilter(boxes, source, this.topK, this.nmsThreshold);
+        Log.i(TAG, String.format("outputIndex: %s", outputIndex.toString()));
+
+        float[][] outputBoxes = new float[outputIndex.length][4];
+        float[] outputScores = new float[outputIndex.length];
+        int index = 0;
+
+        for (int i = 0; i < outputIndex.length; i++) {
+            outputBoxes[index][0] = boxes[i][0];
+            outputBoxes[index][1] = boxes[i][1];
+            outputBoxes[index][2] = boxes[i][2];
+            outputBoxes[index][3] = boxes[i][3];
+            outputScores[index] = source[i];
+            index++;
+            Log.i(TAG, String.format("outputBox: %s %f", boxes[i].toString(), source[i]));
+        }
+
+        output.put(0, outputBoxes);
+        output.put(1, outputScores);
+
 //        /*将list转化为Integer[]*/
 //        ArrayList<Integer> intList = new ArrayList<Integer>();//泛型为Integer
 //        intList.add(123);
