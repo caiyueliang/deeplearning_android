@@ -23,7 +23,7 @@ public class DataEncoder {
     private NMS nms;
     private int topK = 50;
     private float nmsThreshold = (float) 0.5;                   // NMS阈值
-    private float backThreshold = (float) 0.4;                  // 背景过滤置信度
+    private float backThreshold = (float) 0.0;                  // 背景过滤置信度
     private float[] variances = new float[]{(float) 0.1, (float) 0.2};
 
     public DataEncoder(float imageSize) {
@@ -219,8 +219,15 @@ public class DataEncoder {
         ArrayList<Float> sourcesArray = new ArrayList<>();
         for (int i = 0; i < loc.length; i++) {
             // conf[i][0]是背景，conf[i][1]是人脸
-            if (conf[i][0] < this.backThreshold && conf[i][1] > this.backThreshold) {
-                Log.i(TAG, String.format("filter loc: %s %f", loc[i].toString(), conf[i][1]));
+            // if (conf[i][0] <= conf[i][1]) {
+            //     Log.i(TAG, String.format("filter loc: %f %f", conf[i][0], conf[i][1]));
+            //}
+
+            //if (conf[i][0] < this.backThreshold && conf[i][1] > this.backThreshold) {
+            //if (conf[i][0] > this.backThreshold && conf[i][1] < this.backThreshold) {
+            if (conf[i][0] > -1) {
+            //if (conf[i][0] <= conf[i][1]) {
+                Log.i(TAG, String.format("filter loc: %f %f", conf[i][0], conf[i][1]));
 
                 // cxcy = loc[:, :2].cuda() * variances[0] * self.default_boxes[:, 2:].cuda() + self.default_boxes[:, :2].cuda()
                 // wh = torch.exp(loc[:, 2:] * variances[1]) * self.default_boxes[:, 2:].cuda()
@@ -234,7 +241,7 @@ public class DataEncoder {
                 box[1] = (float) (cy - h / 2.0);        // y1
                 box[2] = (float) (cx + w / 2.0);        // x2
                 box[3] = (float) (cy + h / 2.0);        // y2
-                Log.i(TAG, String.format("filter box: %s", box.toString()));
+                Log.i(TAG, String.format("filter box: %f, %f, %f, %f", box[0], box[1], box[2], box[3]));
 
                 float source = conf[i][1];
 
@@ -242,6 +249,7 @@ public class DataEncoder {
                 sourcesArray.add(source);
             }
         }
+        Log.i(TAG, String.format("boxesArray len: %d", boxesArray.size()));
 
         float[][] boxes = new float[boxesArray.size()][4];
         float[] source = new float[sourcesArray.size()];
@@ -256,7 +264,7 @@ public class DataEncoder {
         }
 
         int[] outputIndex = nms.nmsScoreFilter(boxes, source, this.topK, this.nmsThreshold);
-        Log.i(TAG, String.format("outputIndex: %s", outputIndex.toString()));
+        Log.i(TAG, String.format("outputIndex len: %d", outputIndex.length));
 
         float[][] outputBoxes = new float[outputIndex.length][4];
         float[] outputScores = new float[outputIndex.length];
@@ -269,7 +277,8 @@ public class DataEncoder {
             outputBoxes[index][3] = boxes[i][3];
             outputScores[index] = source[i];
             index++;
-            Log.i(TAG, String.format("outputBox: %s %f", boxes[i].toString(), source[i]));
+            Log.i(TAG, String.format("outputBox: %f, %f, %f, %f %f",
+                    boxes[i][0], boxes[i][1], boxes[i][2], boxes[i][3], source[i]));
         }
 
         output.put(0, outputBoxes);

@@ -207,14 +207,21 @@ public class TFLiteFaceBoxesAPIModel implements Classifier {
         float[] outputScores = (float[]) output.get(1);
 
         final ArrayList<Recognition> recognitions = new ArrayList<>(NUM_DETECTIONS);
-        for (int i = 0; i < NUM_DETECTIONS; ++i) {
+
+        int total = outputBoxes.length < NUM_DETECTIONS ? outputBoxes.length: NUM_DETECTIONS;
+        for (int i = 0; i < total; ++i) {
             // (x1, y1, x2, y2) (left, top, right, bottom)
             final RectF detection =
                     new RectF(
-                            outputBoxes[i][1] * inputSize,
                             outputBoxes[i][0] * inputSize,
-                            outputBoxes[i][3] * inputSize,
-                            outputBoxes[i][2] * inputSize);
+                            outputBoxes[i][1] * inputSize,
+                            outputBoxes[i][2] * inputSize,
+                            outputBoxes[i][3] * inputSize);
+
+            Log.i(TAG, String.format("filter box: l %f, t %f, r %f, b %f",
+                    outputBoxes[i][0] * inputSize, outputBoxes[i][1] * inputSize,
+                    outputBoxes[i][2] * inputSize, outputBoxes[i][3] * inputSize));
+
             // SSD Mobilenet V1 Model assumes class 0 is background class
             // in label file and class labels start from 1 to number_of_classes+1,
             // while outputClasses correspond to class index from 0 to number_of_classes
