@@ -226,10 +226,6 @@ public class DataEncoder {
                 // wh = torch.exp(loc[:, 2:] * variances[1]) * self.default_boxes[:, 2:].cuda()
                 // boxes = torch.cat([cxcy-wh/2, cxcy+wh/2], 1)                        # [21824,4]
                 Float[] box = new Float[4];
-                // box[0] = loc[i][0];
-                // box[1] = loc[i][1];
-                // box[2] = loc[i][2];
-                // box[3] = loc[i][3];
                 float cx = loc[i][0] * this.variances[0] * this.boxes[i][0] + this.boxes[i][0];
                 float cy = loc[i][1] * this.variances[0] * this.boxes[i][1] + this.boxes[i][1];
                 float w = loc[i][2] * this.variances[1] * this.boxes[i][2];
@@ -279,26 +275,6 @@ public class DataEncoder {
         output.put(0, outputBoxes);
         output.put(1, outputScores);
 
-//        /*将list转化为Integer[]*/
-//        ArrayList<Integer> intList = new ArrayList<Integer>();//泛型为Integer
-//        intList.add(123);
-//        intList.add(234);
-//        intList.add(345);
-//        Integer[] b = new Integer[intList.size()];//当泛型为Integer时，需要
-//        b = (Integer[])intList.toArray(b);      //以Integer类来作为数组基本元素
-//        System.out.println(Arrays.toString(b));//，否则输出会报错。
-//
-//        Integer[] c = (Integer[])intList.toArray();//此处编译没问题，但是涉及泛型
-//        System.out.println(Arrays.toString(c)); //向下转换，运行会出错
-//
-//        System.out.println(c.getClass());
-//        System.out.println(b.getClass());
-
-//        int[] d = new int[intList.size()];
-//        for(int i = 0;i<intList.size();i++){
-//            d[i] = intList.get(i);
-//        }
-//        System.out.println(Arrays.toString(d));
         return output;
     }
 }

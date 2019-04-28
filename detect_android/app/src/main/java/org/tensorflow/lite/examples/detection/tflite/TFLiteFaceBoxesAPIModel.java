@@ -20,10 +20,7 @@ import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.RectF;
 import android.os.Trace;
-
-import org.tensorflow.lite.Interpreter;
-import org.tensorflow.lite.examples.detection.env.Logger;
-
+import android.util.Log;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -38,12 +35,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
+import org.tensorflow.lite.Interpreter;
+import org.tensorflow.lite.examples.detection.env.Logger;
 
 /**
  * Wrapper for frozen detection models trained using the Tensorflow Object Detection API:
  * github.com/tensorflow/models/tree/master/research/object_detection
  */
 public class TFLiteFaceBoxesAPIModel implements Classifier {
+  private static final String TAG = "TFObjectDetection";
   private static final Logger LOGGER = new Logger();
 
   // Only return this many results.
@@ -64,7 +64,7 @@ public class TFLiteFaceBoxesAPIModel implements Classifier {
   private float[][][] outputLocations;
   // outputClasses: array of shape [Batchsize, NUM_DETECTIONS]
   // contains the classes of detected boxes
-  private float[][] outputClasses;
+  private float[][][] outputClasses;
   // outputScores: array of shape [Batchsize, NUM_DETECTIONS]
   // contains the scores of detected boxes
   private float[][] outputScores;
@@ -75,6 +75,7 @@ public class TFLiteFaceBoxesAPIModel implements Classifier {
   private ByteBuffer imgData;
 
   private Interpreter tfLite;
+  private DataEncoder dataEncoder = new DataEncoder(1024);
 
   private TFLiteFaceBoxesAPIModel() {}
 
@@ -142,7 +143,7 @@ public class TFLiteFaceBoxesAPIModel implements Classifier {
 
     d.tfLite.setNumThreads(NUM_THREADS);
     d.outputLocations = new float[1][NUM_DETECTIONS][4];
-    d.outputClasses = new float[1][NUM_DETECTIONS];
+    d.outputClasses = new float[1][NUM_DETECTIONS][2];
     d.outputScores = new float[1][NUM_DETECTIONS];
     d.numDetections = new float[1];
     return d;
@@ -180,23 +181,42 @@ public class TFLiteFaceBoxesAPIModel implements Classifier {
 
     // Copy the input data into TensorFlow.   拷贝输入数据到TensorFlow
     Trace.beginSection("feed");
-    outputLocations = new float[1][NUM_DETECTIONS][4];    // 输出坐标
-    outputClasses = new float[1][NUM_DETECTIONS];         // 输出类别
-    outputScores = new float[1][NUM_DETECTIONS];          // 输出评分
-    numDetections = new float[1];                         // 检测框个数
+    // TODO
+    outputLocations = new float[1][dataEncoder.getBoxesNum()][4];       // 输出坐标
+    outputClasses = new float[1][dataEncoder.getBoxesNum()][2];         // 输出类别
+    // outputLocations = new float[1][NUM_DETECTIONS][4];    // 输出坐标
+    // outputClasses = new float[1][NUM_DETECTIONS];         // 输出类别
+    // outputScores = new float[1][NUM_DETECTIONS];          // 输出评分
+    // numDetections = new float[1];                         // 检测框个数
 
     Object[] inputArray = {imgData};                      // 输入图片
+
+    // TODO
     Map<Integer, Object> outputMap = new HashMap<>();     // 输出信息存放到outputMap，作为参数传给TF
-    outputMap.put(0, outputLocations);
-    outputMap.put(1, outputClasses);
-    outputMap.put(2, outputScores);
-    outputMap.put(3, numDetections);
+    outputMap.put(0, outputClasses);
+    outputMap.put(1, outputLocations);
+    // outputMap.put(2, outputScores);
+    // outputMap.put(3, numDetections);
+
     Trace.endSection();
 
     // Run the inference call.      模型推理
     Trace.beginSection("run");
     tfLite.runForMultipleInputsOutputs(inputArray, outputMap);
     Trace.endSection();
+
+    // TODO
+//    float[][][] locPredict = (float[][][])outputMap.get(1);
+//    for (int i = 0; i < 21824; i++) {
+//        Log.i(TAG, String.format("outputClasses %f, %f, %f, %f", locPredict[0][i][0],
+//                locPredict[0][i][1], locPredict[0][i][2], locPredict[0][i][3]));
+//    }
+//
+//    float[][][] classPredict = (float[][][])outputMap.get(0);
+//    for (int i = 0; i < 21824; i++) {
+//        Log.i(TAG, String.format("outputClasses %f, %f", classPredict[0][i][0], classPredict[0][i][1]));
+//    }
+
 
     // Show the best detections.
     // after scaling them back to the input size.
@@ -215,7 +235,7 @@ public class TFLiteFaceBoxesAPIModel implements Classifier {
       recognitions.add(
           new Recognition(
               "" + i,
-              labels.get((int) outputClasses[0][i] + labelOffset),
+              labels.get((int) outputClasses[0][i][0] + labelOffset),
               outputScores[0][i],
               detection));
     }
