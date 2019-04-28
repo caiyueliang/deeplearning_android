@@ -149,99 +149,121 @@ public class TFLiteFaceBoxesAPIModel implements Classifier {
     return d;
   }
 
-  @Override
-  public List<Recognition> recognizeImage(final Bitmap bitmap) {
-    // Log this method so that it can be analyzed with systrace.
-    Trace.beginSection("recognizeImage");
+    @Override
+    public List<Recognition> recognizeImage(final Bitmap bitmap) {
+        // Log this method so that it can be analyzed with systrace.
+        Trace.beginSection("recognizeImage");
 
-    Trace.beginSection("preprocessBitmap");
-    // Preprocess the image data from 0-255 int to normalized float based
-    // on the provided parameters.
-    // 图片预处理
-    bitmap.getPixels(intValues, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
+        Trace.beginSection("preprocessBitmap");
+        // Preprocess the image data from 0-255 int to normalized float based
+        // on the provided parameters.
+        // 图片预处理
+        bitmap.getPixels(intValues, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
 
-    imgData.rewind();
-    for (int i = 0; i < inputSize; ++i) {
-      for (int j = 0; j < inputSize; ++j) {
-        int pixelValue = intValues[i * inputSize + j];
-        if (isModelQuantized) {
-          // Quantized model  量化模型
-          imgData.put((byte) ((pixelValue >> 16) & 0xFF));
-          imgData.put((byte) ((pixelValue >> 8) & 0xFF));
-          imgData.put((byte) (pixelValue & 0xFF));
-        } else {
-          // Float model      浮点模型
-          imgData.putFloat((((pixelValue >> 16) & 0xFF) - IMAGE_MEAN) / IMAGE_STD);
-          imgData.putFloat((((pixelValue >> 8) & 0xFF) - IMAGE_MEAN) / IMAGE_STD);
-          imgData.putFloat(((pixelValue & 0xFF) - IMAGE_MEAN) / IMAGE_STD);
+        imgData.rewind();
+        for (int i = 0; i < inputSize; ++i) {
+            for (int j = 0; j < inputSize; ++j) {
+                int pixelValue = intValues[i * inputSize + j];
+                if (isModelQuantized) {
+                    // Quantized model  量化模型
+                    imgData.put((byte) ((pixelValue >> 16) & 0xFF));
+                    imgData.put((byte) ((pixelValue >> 8) & 0xFF));
+                    imgData.put((byte) (pixelValue & 0xFF));
+                } else {
+                    // Float model      浮点模型
+                    imgData.putFloat((((pixelValue >> 16) & 0xFF) - IMAGE_MEAN) / IMAGE_STD);
+                    imgData.putFloat((((pixelValue >> 8) & 0xFF) - IMAGE_MEAN) / IMAGE_STD);
+                    imgData.putFloat(((pixelValue & 0xFF) - IMAGE_MEAN) / IMAGE_STD);
+                }
+            }
         }
-      }
+        Trace.endSection(); // preprocessBitmap
+
+        // Copy the input data into TensorFlow.   拷贝输入数据到TensorFlow
+        Trace.beginSection("feed");
+        // TODO
+        outputLocations = new float[1][dataEncoder.getBoxesNum()][4];       // 输出坐标
+        outputClasses = new float[1][dataEncoder.getBoxesNum()][2];         // 输出类别
+
+        Object[] inputArray = {imgData};                      // 输入图片
+
+        // TODO
+        Map<Integer, Object> outputMap = new HashMap<>();     // 输出信息存放到outputMap，作为参数传给TF
+        outputMap.put(0, outputClasses);
+        outputMap.put(1, outputLocations);
+
+        Trace.endSection();
+
+        // Run the inference call.      模型推理
+        Trace.beginSection("run");
+        tfLite.runForMultipleInputsOutputs(inputArray, outputMap);
+
+        float[][][] locPredict = (float[][][])outputMap.get(1);
+        float[][][] classPredict = (float[][][])outputMap.get(0);
+        Map<Integer, Object> output = dataEncoder.decode(locPredict[0], classPredict[0]);
+        Trace.endSection();
+
+        float[][] outputBoxes = (float[][]) output.get(0);
+        float[] outputScores = (float[]) output.get(1);
+
+        final ArrayList<Recognition> recognitions = new ArrayList<>(NUM_DETECTIONS);
+        for (int i = 0; i < NUM_DETECTIONS; ++i) {
+            // (x1, y1, x2, y2) (left, top, right, bottom)
+            final RectF detection =
+                    new RectF(
+                            outputBoxes[i][1] * inputSize,
+                            outputBoxes[i][0] * inputSize,
+                            outputBoxes[i][3] * inputSize,
+                            outputBoxes[i][2] * inputSize);
+            // SSD Mobilenet V1 Model assumes class 0 is background class
+            // in label file and class labels start from 1 to number_of_classes+1,
+            // while outputClasses correspond to class index from 0 to number_of_classes
+            int labelOffset = 1;
+            recognitions.add(
+                    new Recognition(
+                            "" + i,
+                            labels.get((int) outputClasses[0][i][0] + labelOffset),
+                            outputScores[i],
+                            detection));
+        }
+        Trace.endSection(); // "recognizeImage"
+        return recognitions;
+    //    // TODO
+    //    float[][][] locPredict = (float[][][])outputMap.get(1);
+    //    for (int i = 0; i < 21824; i++) {
+    //        Log.i(TAG, String.format("outputClasses %f, %f, %f, %f", locPredict[0][i][0],
+    //                locPredict[0][i][1], locPredict[0][i][2], locPredict[0][i][3]));
+    //    }
+    //
+    //    float[][][] classPredict = (float[][][])outputMap.get(0);
+    //    for (int i = 0; i < 21824; i++) {
+    //        Log.i(TAG, String.format("outputClasses %f, %f", classPredict[0][i][0], classPredict[0][i][1]));
+    //    }
+
+        // Show the best detections.
+        // after scaling them back to the input size.
+//        final ArrayList<Recognition> recognitions = new ArrayList<>(NUM_DETECTIONS);
+//        for (int i = 0; i < NUM_DETECTIONS; ++i) {
+//            final RectF detection =
+//                new RectF(
+//                    outputLocations[0][i][1] * inputSize,
+//                    outputLocations[0][i][0] * inputSize,
+//                    outputLocations[0][i][3] * inputSize,
+//                    outputLocations[0][i][2] * inputSize);
+//            // SSD Mobilenet V1 Model assumes class 0 is background class
+//            // in label file and class labels start from 1 to number_of_classes+1,
+//            // while outputClasses correspond to class index from 0 to number_of_classes
+//            int labelOffset = 1;
+//            recognitions.add(
+//                new Recognition(
+//                    "" + i,
+//                    labels.get((int) outputClasses[0][i][0] + labelOffset),
+//                    outputScores[0][i],
+//                    detection));
+//        }
+//        Trace.endSection(); // "recognizeImage"
+//        return recognitions;
     }
-    Trace.endSection(); // preprocessBitmap
-
-    // Copy the input data into TensorFlow.   拷贝输入数据到TensorFlow
-    Trace.beginSection("feed");
-    // TODO
-    outputLocations = new float[1][dataEncoder.getBoxesNum()][4];       // 输出坐标
-    outputClasses = new float[1][dataEncoder.getBoxesNum()][2];         // 输出类别
-    // outputLocations = new float[1][NUM_DETECTIONS][4];    // 输出坐标
-    // outputClasses = new float[1][NUM_DETECTIONS];         // 输出类别
-    // outputScores = new float[1][NUM_DETECTIONS];          // 输出评分
-    // numDetections = new float[1];                         // 检测框个数
-
-    Object[] inputArray = {imgData};                      // 输入图片
-
-    // TODO
-    Map<Integer, Object> outputMap = new HashMap<>();     // 输出信息存放到outputMap，作为参数传给TF
-    outputMap.put(0, outputClasses);
-    outputMap.put(1, outputLocations);
-    // outputMap.put(2, outputScores);
-    // outputMap.put(3, numDetections);
-
-    Trace.endSection();
-
-    // Run the inference call.      模型推理
-    Trace.beginSection("run");
-    tfLite.runForMultipleInputsOutputs(inputArray, outputMap);
-    Trace.endSection();
-
-    // TODO
-//    float[][][] locPredict = (float[][][])outputMap.get(1);
-//    for (int i = 0; i < 21824; i++) {
-//        Log.i(TAG, String.format("outputClasses %f, %f, %f, %f", locPredict[0][i][0],
-//                locPredict[0][i][1], locPredict[0][i][2], locPredict[0][i][3]));
-//    }
-//
-//    float[][][] classPredict = (float[][][])outputMap.get(0);
-//    for (int i = 0; i < 21824; i++) {
-//        Log.i(TAG, String.format("outputClasses %f, %f", classPredict[0][i][0], classPredict[0][i][1]));
-//    }
-
-
-    // Show the best detections.
-    // after scaling them back to the input size.
-    final ArrayList<Recognition> recognitions = new ArrayList<>(NUM_DETECTIONS);
-    for (int i = 0; i < NUM_DETECTIONS; ++i) {
-      final RectF detection =
-          new RectF(
-              outputLocations[0][i][1] * inputSize,
-              outputLocations[0][i][0] * inputSize,
-              outputLocations[0][i][3] * inputSize,
-              outputLocations[0][i][2] * inputSize);
-      // SSD Mobilenet V1 Model assumes class 0 is background class
-      // in label file and class labels start from 1 to number_of_classes+1,
-      // while outputClasses correspond to class index from 0 to number_of_classes
-      int labelOffset = 1;
-      recognitions.add(
-          new Recognition(
-              "" + i,
-              labels.get((int) outputClasses[0][i][0] + labelOffset),
-              outputScores[0][i],
-              detection));
-    }
-    Trace.endSection(); // "recognizeImage"
-    return recognitions;
-  }
 
   @Override
   public void enableStatLogging(final boolean logStats) {}

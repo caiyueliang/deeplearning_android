@@ -39,6 +39,7 @@ import org.tensorflow.lite.examples.detection.env.BorderedText;
 import org.tensorflow.lite.examples.detection.env.ImageUtils;
 import org.tensorflow.lite.examples.detection.env.Logger;
 import org.tensorflow.lite.examples.detection.tflite.Classifier;
+import org.tensorflow.lite.examples.detection.tflite.TFLiteFaceBoxesAPIModel;
 import org.tensorflow.lite.examples.detection.tflite.TFLiteObjectDetectionAPIModel;
 import org.tensorflow.lite.examples.detection.tracking.MultiBoxTracker;
 
@@ -114,7 +115,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         TF_OD_API_MODEL_FILE = "faceboxes_float.tflite";
         TF_OD_API_LABELS_FILE = "file:///android_asset/faceboxes_label.txt";
 
-        detector = TFLiteObjectDetectionAPIModel.create(
+        detector = TFLiteFaceBoxesAPIModel.create(
                         getAssets(),
                         TF_OD_API_MODEL_FILE,
                         TF_OD_API_LABELS_FILE,
