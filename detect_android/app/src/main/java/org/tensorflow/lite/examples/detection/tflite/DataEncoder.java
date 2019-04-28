@@ -223,9 +223,9 @@ public class DataEncoder {
             //     Log.i(TAG, String.format("filter loc: %f %f", conf[i][0], conf[i][1]));
             //}
 
-            //if (conf[i][0] < this.backThreshold && conf[i][1] > this.backThreshold) {
+            if (conf[i][0] < this.backThreshold && conf[i][1] > this.backThreshold) {
             //if (conf[i][0] > this.backThreshold && conf[i][1] < this.backThreshold) {
-            if (conf[i][0] > -1) {
+            //if (conf[i][0] > -1) {
             //if (conf[i][0] <= conf[i][1]) {
                 Log.i(TAG, String.format("filter loc: %f %f", conf[i][0], conf[i][1]));
 
