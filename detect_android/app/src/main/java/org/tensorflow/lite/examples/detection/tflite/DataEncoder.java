@@ -24,6 +24,7 @@ public class DataEncoder {
     private int topK = 50;
     private float nmsThreshold = (float) 0.5;                   // NMS阈值
     private float backThreshold = (float) 0.4;                  // 背景过滤置信度
+    private float[] variances = new float[]{(float) 0.1, (float) 0.2};
 
     public DataEncoder(float imageSize) {
         this.scale = imageSize;
@@ -218,13 +219,28 @@ public class DataEncoder {
         ArrayList<Float> sourcesArray = new ArrayList<>();
         for (int i = 0; i < loc.length; i++) {
             // conf[i][0]是背景，conf[i][1]是人脸
-            if (conf[i][0] < this.backThreshold) {
+            if (conf[i][0] < this.backThreshold && conf[i][1] > this.backThreshold) {
+                Log.i(TAG, String.format("filter loc: %s %f", loc[i].toString(), conf[i][1]));
+
+                // cxcy = loc[:, :2].cuda() * variances[0] * self.default_boxes[:, 2:].cuda() + self.default_boxes[:, :2].cuda()
+                // wh = torch.exp(loc[:, 2:] * variances[1]) * self.default_boxes[:, 2:].cuda()
+                // boxes = torch.cat([cxcy-wh/2, cxcy+wh/2], 1)                        # [21824,4]
                 Float[] box = new Float[4];
-                box[0] = loc[i][0];
-                box[1] = loc[i][1];
-                box[2] = loc[i][2];
-                box[3] = loc[i][3];
-                Float source = conf[i][1];
+                // box[0] = loc[i][0];
+                // box[1] = loc[i][1];
+                // box[2] = loc[i][2];
+                // box[3] = loc[i][3];
+                float cx = loc[i][0] * this.variances[0] * this.boxes[i][0] + this.boxes[i][0];
+                float cy = loc[i][1] * this.variances[0] * this.boxes[i][1] + this.boxes[i][1];
+                float w = loc[i][2] * this.variances[1] * this.boxes[i][2];
+                float h = loc[i][3] * this.variances[1] * this.boxes[i][3];
+                box[0] = (float) (cx - w / 2.0);        // x1
+                box[1] = (float) (cy - h / 2.0);        // y1
+                box[2] = (float) (cx + w / 2.0);        // x2
+                box[3] = (float) (cy + h / 2.0);        // y2
+                Log.i(TAG, String.format("filter box: %s", box.toString()));
+
+                float source = conf[i][1];
 
                 boxesArray.add(box);
                 sourcesArray.add(source);
