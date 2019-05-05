@@ -59,7 +59,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
   private static final DetectorMode MODE = DetectorMode.TF_OD_API;
   // Minimum detection confidence to track a detection.
-  private static final float MINIMUM_CONFIDENCE_TF_OD_API = 0.5f;
+  private static final float MINIMUM_CONFIDENCE_TF_OD_API = 0.0f;
   private static final boolean MAINTAIN_ASPECT = false;
   private static final Size DESIRED_PREVIEW_SIZE = new Size(640, 480);
   private static final boolean SAVE_PREVIEW_BITMAP = false;
@@ -207,60 +207,60 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         new Runnable() {
           @Override
           public void run() {
-            LOGGER.i("Running detection on image " + currTimestamp);
-            final long startTime = SystemClock.uptimeMillis();
+              LOGGER.i("Running detection on image " + currTimestamp);
+              final long startTime = SystemClock.uptimeMillis();
 
-            // 执行图像识别
-            final List<Classifier.Recognition> results = detector.recognizeImage(croppedBitmap);
-            lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
+              // 执行图像识别
+              final List<Classifier.Recognition> results = detector.recognizeImage(croppedBitmap);
+              lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
 
-            cropCopyBitmap = Bitmap.createBitmap(croppedBitmap);
-            final Canvas canvas = new Canvas(cropCopyBitmap);
-            final Paint paint = new Paint();
-            paint.setColor(Color.RED);
-            paint.setStyle(Style.STROKE);
-            paint.setStrokeWidth(2.0f);
+              cropCopyBitmap = Bitmap.createBitmap(croppedBitmap);
+              final Canvas canvas = new Canvas(cropCopyBitmap);
+              final Paint paint = new Paint();
+              paint.setColor(Color.RED);
+              paint.setStyle(Style.STROKE);
+              paint.setStrokeWidth(2.0f);
 
-            float minimumConfidence = MINIMUM_CONFIDENCE_TF_OD_API;
-            switch (MODE) {
-              case TF_OD_API:
-                minimumConfidence = MINIMUM_CONFIDENCE_TF_OD_API;
-                break;
-            }
-
-            final List<Classifier.Recognition> mappedRecognitions =
-                new LinkedList<Classifier.Recognition>();     // 存放识别结果?
-
-            // 遍历每个结果
-            for (final Classifier.Recognition result : results) {
-              final RectF location = result.getLocation();    // 获取坐标
-
-              // 判断坐标不为空并且置信度大于阈值
-              if (location != null && result.getConfidence() >= minimumConfidence) {
-                canvas.drawRect(location, paint);             // 画检测框
-
-                cropToFrameTransform.mapRect(location);
-
-                result.setLocation(location);
-                mappedRecognitions.add(result);
+              float minimumConfidence = MINIMUM_CONFIDENCE_TF_OD_API;
+              switch (MODE) {
+                case TF_OD_API:
+                  minimumConfidence = MINIMUM_CONFIDENCE_TF_OD_API;
+                  break;
               }
-            }
 
-            tracker.trackResults(mappedRecognitions, luminanceCopy, currTimestamp);
-            trackingOverlay.postInvalidate();
+              final List<Classifier.Recognition> mappedRecognitions =
+                  new LinkedList<Classifier.Recognition>();         // 存放识别结果?
 
-            computingDetection = false;
+              // 遍历每个结果
+              for (final Classifier.Recognition result : results) {
+                  final RectF location = result.getLocation();      // 获取坐标
 
-            // UI界面上对应的控件上显示一些信息:坐标,耗时等
-            runOnUiThread(
-                new Runnable() {
-                  @Override
-                  public void run() {
-                    showFrameInfo(previewWidth + "x" + previewHeight);
-                    showCropInfo(cropCopyBitmap.getWidth() + "x" + cropCopyBitmap.getHeight());
-                    showInference(lastProcessingTimeMs + "ms");
+                  // 判断坐标不为空并且置信度大于阈值
+                  if (location != null && result.getConfidence() >= minimumConfidence) {
+                      canvas.drawRect(location, paint);             // 画检测框
+
+                      cropToFrameTransform.mapRect(location);
+
+                      result.setLocation(location);
+                      mappedRecognitions.add(result);
                   }
-                });
+              }
+
+              tracker.trackResults(mappedRecognitions, luminanceCopy, currTimestamp);
+              trackingOverlay.postInvalidate();
+
+              computingDetection = false;
+
+              // UI界面上对应的控件上显示一些信息:坐标,耗时等
+              runOnUiThread(
+                  new Runnable() {
+                      @Override
+                      public void run() {
+                          showFrameInfo(previewWidth + "x" + previewHeight);
+                          showCropInfo(cropCopyBitmap.getWidth() + "x" + cropCopyBitmap.getHeight());
+                          showInference(lastProcessingTimeMs + "ms");
+                      }
+                  });
           }
         });
   }

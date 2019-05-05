@@ -254,7 +254,7 @@ public class DataEncoder {
                 sourcesArray.add(source);
             }
         }
-        Log.i(TAG, String.format("boxesArray len: %d", boxesArray.size()));
+        // Log.i(TAG, String.format("boxesArray len: %d", boxesArray.size()));
 
         float[][] boxes = new float[boxesArray.size()][4];
         float[] source = new float[sourcesArray.size()];
@@ -282,8 +282,8 @@ public class DataEncoder {
             outputBoxes[index][3] = boxes[i][3];
             outputScores[index] = source[i];
             index++;
-            Log.i(TAG, String.format("outputBox: %f, %f, %f, %f %f",
-                    boxes[i][0], boxes[i][1], boxes[i][2], boxes[i][3], source[i]));
+            // Log.i(TAG, String.format("outputBox: %f, %f, %f, %f %f",
+            //         boxes[i][0], boxes[i][1], boxes[i][2], boxes[i][3], source[i]));
         }
 
         output.put(0, outputBoxes);

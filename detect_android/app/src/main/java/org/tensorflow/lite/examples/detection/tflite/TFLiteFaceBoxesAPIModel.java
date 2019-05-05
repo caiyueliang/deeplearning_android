@@ -182,19 +182,6 @@ public class TFLiteFaceBoxesAPIModel implements Classifier {
                     imgData.putFloat(((pixelValue >> 8) & 0xFF) * 1.0f);
                     imgData.putFloat((pixelValue & 0xFF) * 1.0f);
                 }
-
-//                if (i % 300 == 0 && j % 300 == 0) {
-//                    Log.i(TAG, String.format("pixelValue: %d, %d, %d, %d",
-//                            pixelValue,
-//                            ((pixelValue >> 16) & 0xFF),
-//                            ((pixelValue >> 8) & 0xFF),
-//                            (pixelValue & 0xFF)));
-//                    Log.i(TAG, String.format("pixelValue: %d, %f, %f, %f",
-//                            pixelValue,
-//                            ((pixelValue >> 16) & 0xFF) / 255.0f,
-//                            ((pixelValue >> 8) & 0xFF) / 255.0f,
-//                            (pixelValue & 0xFF) / 255.0f));
-//                }
             }
         }
         Trace.endSection(); // preprocessBitmap
@@ -254,6 +241,7 @@ public class TFLiteFaceBoxesAPIModel implements Classifier {
                             detection));
         }
         Trace.endSection(); // "recognizeImage"
+
         return recognitions;
     //    // TODO
     //    float[][][] locPredict = (float[][][])outputMap.get(1);
