@@ -24,9 +24,9 @@ public class DataEncoder {
 
     private NMS nms;
     private int topK = 50;
-    private float nmsThreshold = (float) 0.5;                   // NMS阈值
-    private float backThreshold = (float) 0.0;                  // 背景过滤置信度
-    private float[] variances = new float[]{(float) 0.1, (float) 0.2};
+    private float nmsThreshold = 0.5f;                   // NMS阈值
+    private float backThreshold = 0.0f;                  // 背景过滤置信度
+    private float[] variances = new float[]{0.1f, 0.2f};
 
     public DataEncoder(float imageSize) {
         this.scale = imageSize;
@@ -225,15 +225,12 @@ public class DataEncoder {
             //     Log.i(TAG, String.format("filter loc: %f %f", conf[i][0], conf[i][1]));
             //}
 
-//            if (i % 1000 == 0) {
-//                Log.i(TAG, String.format("filter loc: %d %f %f", i, conf[i][0], conf[i][1]));
-//            }
+            //if (i % 1000 == 0) {
+            //    Log.i(TAG, String.format("filter loc: %d %f %f", i, conf[i][0], conf[i][1]));
+            //}
 
             if (conf[i][0] < this.backThreshold && conf[i][1] > this.backThreshold) {
-            //if (conf[i][0] > this.backThreshold && conf[i][1] < this.backThreshold) {
-            //if (conf[i][0] > -1) {
-            //if (conf[i][0] <= conf[i][1]) {
-                Log.i(TAG, String.format("%d filter loc: %f %f", i, conf[i][0], conf[i][1]));
+                // Log.i(TAG, String.format("%d filter loc: %f %f", i, conf[i][0], conf[i][1]));
 
                 // cxcy = loc[:, :2].cuda() * variances[0] * self.default_boxes[:, 2:].cuda() + self.default_boxes[:, :2].cuda()
                 // wh = torch.exp(loc[:, 2:] * variances[1]) * self.default_boxes[:, 2:].cuda()
@@ -243,13 +240,13 @@ public class DataEncoder {
                 float cy = loc[i][1] * this.variances[0] * this.boxes[i][1] + this.boxes[i][1];
                 float w = (float) exp((double)(loc[i][2] * this.variances[1])) * this.boxes[i][2];
                 float h = (float) exp((double)(loc[i][3] * this.variances[1])) * this.boxes[i][3];
-                Log.i(TAG, String.format("%d cx cy w h: %f, %f, %f, %f", i, cx, cy, w, h));
+                // Log.i(TAG, String.format("%d cx cy w h: %f, %f, %f, %f", i, cx, cy, w, h));
 
                 box[0] = cx - w / 2.0f;        // x1
                 box[1] = cy - h / 2.0f;        // y1
                 box[2] = cx + w / 2.0f;        // x2
                 box[3] = cy + h / 2.0f;        // y2
-                Log.i(TAG, String.format("%d filter box: %f, %f, %f, %f", i, box[0], box[1], box[2], box[3]));
+                // Log.i(TAG, String.format("%d filter box: %f, %f, %f, %f", i, box[0], box[1], box[2], box[3]));
 
                 float source = conf[i][1];
 
