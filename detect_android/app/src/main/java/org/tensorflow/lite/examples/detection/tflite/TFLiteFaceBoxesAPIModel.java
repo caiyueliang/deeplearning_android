@@ -171,12 +171,12 @@ public class TFLiteFaceBoxesAPIModel implements Classifier {
                     imgData.put((byte) (pixelValue & 0xFF));
                 } else {
                     // Float model      浮点模型
-                    imgData.putFloat((((pixelValue >> 16) & 0xFF) - IMAGE_MEAN) / IMAGE_STD);
-                    imgData.putFloat((((pixelValue >> 8) & 0xFF) - IMAGE_MEAN) / IMAGE_STD);
-                    imgData.putFloat(((pixelValue & 0xFF) - IMAGE_MEAN) / IMAGE_STD);
-                    //imgData.putFloat(((pixelValue >> 16) & 0xFF));
-                    //imgData.putFloat(((pixelValue >> 8) & 0xFF));
-                    //imgData.putFloat((pixelValue & 0xFF));
+                    //imgData.putFloat((((pixelValue >> 16) & 0xFF) - IMAGE_MEAN) / IMAGE_STD);
+                    //imgData.putFloat((((pixelValue >> 8) & 0xFF) - IMAGE_MEAN) / IMAGE_STD);
+                    //imgData.putFloat(((pixelValue & 0xFF) - IMAGE_MEAN) / IMAGE_STD);
+                    imgData.putFloat(((pixelValue >> 16) & 0xFF) / 255.0f);
+                    imgData.putFloat(((pixelValue >> 8) & 0xFF) / 255.0f);
+                    imgData.putFloat((pixelValue & 0xFF) / 255.0f);
                 }
             }
         }
