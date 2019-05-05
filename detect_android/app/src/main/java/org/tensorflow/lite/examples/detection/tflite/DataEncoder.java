@@ -7,6 +7,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.lang.Math.exp;
+
 public class DataEncoder {
     private static final String TAG = "TFObjectDetection";
     private int boxesNum = 21824;
@@ -239,8 +241,8 @@ public class DataEncoder {
                 Float[] box = new Float[4];
                 float cx = loc[i][0] * this.variances[0] * this.boxes[i][0] + this.boxes[i][0];
                 float cy = loc[i][1] * this.variances[0] * this.boxes[i][1] + this.boxes[i][1];
-                float w = loc[i][2] * this.variances[1] * this.boxes[i][2];
-                float h = loc[i][3] * this.variances[1] * this.boxes[i][3];
+                float w = (float) exp((double)(loc[i][2] * this.variances[1])) * this.boxes[i][2];
+                float h = (float) exp((double)(loc[i][3] * this.variances[1])) * this.boxes[i][3];
                 Log.i(TAG, String.format("%d cx cy w h: %f, %f, %f, %f", i, cx, cy, w, h));
 
                 box[0] = cx - w / 2.0f;        // x1
