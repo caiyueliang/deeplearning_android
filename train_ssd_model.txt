@@ -1,0 +1,30 @@
+1.https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/installation.md
+Tensorflow及Object detection API相关环境的搭建安装
+
+2.预训练模型可以在tensorflow object detection的model zoo中下载
+https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/detection_model_zoo.md
+
+3.
+
+4.research路径找到对应模型的config文件object_detection/samples/configs/ssd_mobilenet_v1_0.75_depth_quantized_300x300_pets_sync.config
+修改其中tfrecord及label的路径基于checkpoint路径后开始训练模型
+
+5.训练代码：research/object_detection/legacy/train.py
+python train.py \
+        --logtostderr \
+        --train_dir=/home/kai/tensorflow/face/ \
+        --pipeline_config_path=/home/kai/tensorflow/face/ssd_mobilenet_v1_0.75_depth_quantized_300x300_pets_sync.config
+
+
+
+
+
+
+
+
+
+
+
+
+
+
