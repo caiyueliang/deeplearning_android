@@ -231,7 +231,7 @@ public class DataEncoder {
             //if (conf[i][0] > this.backThreshold && conf[i][1] < this.backThreshold) {
             //if (conf[i][0] > -1) {
             //if (conf[i][0] <= conf[i][1]) {
-                Log.i(TAG, String.format("filter loc: %d %f %f", i, conf[i][0], conf[i][1]));
+                Log.i(TAG, String.format("%d filter loc: %f %f", i, conf[i][0], conf[i][1]));
 
                 // cxcy = loc[:, :2].cuda() * variances[0] * self.default_boxes[:, 2:].cuda() + self.default_boxes[:, :2].cuda()
                 // wh = torch.exp(loc[:, 2:] * variances[1]) * self.default_boxes[:, 2:].cuda()
@@ -241,11 +241,13 @@ public class DataEncoder {
                 float cy = loc[i][1] * this.variances[0] * this.boxes[i][1] + this.boxes[i][1];
                 float w = loc[i][2] * this.variances[1] * this.boxes[i][2];
                 float h = loc[i][3] * this.variances[1] * this.boxes[i][3];
-                box[0] = (float) (cx - w / 2.0);        // x1
-                box[1] = (float) (cy - h / 2.0);        // y1
-                box[2] = (float) (cx + w / 2.0);        // x2
-                box[3] = (float) (cy + h / 2.0);        // y2
-                Log.i(TAG, String.format("filter box: %f, %f, %f, %f", box[0], box[1], box[2], box[3]));
+                Log.i(TAG, String.format("%d cx cy w h: %f, %f, %f, %f", i, cx, cy, w, h));
+
+                box[0] = cx - w / 2.0f;        // x1
+                box[1] = cy - h / 2.0f;        // y1
+                box[2] = cx + w / 2.0f;        // x2
+                box[3] = cy + h / 2.0f;        // y2
+                Log.i(TAG, String.format("%d filter box: %f, %f, %f, %f", i, box[0], box[1], box[2], box[3]));
 
                 float source = conf[i][1];
 
