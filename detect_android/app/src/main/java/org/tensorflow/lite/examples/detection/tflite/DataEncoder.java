@@ -222,15 +222,16 @@ public class DataEncoder {
             // if (conf[i][0] <= conf[i][1]) {
             //     Log.i(TAG, String.format("filter loc: %f %f", conf[i][0], conf[i][1]));
             //}
-            if (i % 10000 == 0) {
-                Log.i(TAG, String.format("filter loc: %d %f %f", i, conf[i][0], conf[i][1]));
-            }
+
+//            if (i % 1000 == 0) {
+//                Log.i(TAG, String.format("filter loc: %d %f %f", i, conf[i][0], conf[i][1]));
+//            }
 
             if (conf[i][0] < this.backThreshold && conf[i][1] > this.backThreshold) {
             //if (conf[i][0] > this.backThreshold && conf[i][1] < this.backThreshold) {
             //if (conf[i][0] > -1) {
             //if (conf[i][0] <= conf[i][1]) {
-                Log.i(TAG, String.format("filter loc: %f %f", conf[i][0], conf[i][1]));
+                Log.i(TAG, String.format("filter loc: %d %f %f", i, conf[i][0], conf[i][1]));
 
                 // cxcy = loc[:, :2].cuda() * variances[0] * self.default_boxes[:, 2:].cuda() + self.default_boxes[:, :2].cuda()
                 // wh = torch.exp(loc[:, 2:] * variances[1]) * self.default_boxes[:, 2:].cuda()
