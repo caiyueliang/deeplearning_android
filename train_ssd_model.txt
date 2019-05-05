@@ -4,7 +4,7 @@ Tensorflow及Object detection API相关环境的搭建安装
 2.预训练模型可以在tensorflow object detection的model zoo中下载
 https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/detection_model_zoo.md
 
-3.
+3.人脸数据集可以采用WIDER FACE数据集，下载好后利用脚本将图像及标注信息转换为tfrecord格式供训练使用。
 
 4.research路径找到对应模型的config文件object_detection/samples/configs/ssd_mobilenet_v1_0.75_depth_quantized_300x300_pets_sync.config
 修改其中tfrecord及label的路径基于checkpoint路径后开始训练模型
@@ -14,6 +14,26 @@ python train.py \
         --logtostderr \
         --train_dir=/home/kai/tensorflow/face/ \
         --pipeline_config_path=/home/kai/tensorflow/face/ssd_mobilenet_v1_0.75_depth_quantized_300x300_pets_sync.config
+		
+6.首先需要将checkpoint转换为Tensorflow lite可用的pb文件
+python object_detection/export_tflite_ssd_graph.py \
+--pipeline_config_path=$CONFIG_FILE \
+--trained_checkpoint_prefix=$CHECKPOINT_PATH \
+--output_directory=$OUTPUT_DIR \
+--add_postprocessing_op=true
+
+7.得到tflite_graph.pb后需要利用TOCO将pb模型转换为.tflite模型
+bazel run -c opt tensorflow/contrib/lite/toco:toco -- \
+--input_file=$OUTPUT_DIR/tflite_graph.pb \
+--output_file=$OUTPUT_DIR/detect.tflite \
+--input_shapes=1,300,300,3 \
+--input_arrays=normalized_input_image_tensor \
+--output_arrays='TFLite_Detection_PostProcess','TFLite_Detection_PostProcess:1','TFLite_Detection_PostProcess:2','TFLite_Detection_PostProcess:3'  \
+--inference_type=QUANTIZED_UINT8 \
+--mean_values=128 \
+--std_values=128 \
+--change_concat_input_ranges=false \
+--allow_custom_ops
 
 
 
