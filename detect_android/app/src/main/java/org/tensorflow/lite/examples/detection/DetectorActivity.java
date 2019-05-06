@@ -48,126 +48,131 @@ import org.tensorflow.lite.examples.detection.tracking.MultiBoxTracker;
  * objects.
  */
 public class DetectorActivity extends CameraActivity implements OnImageAvailableListener {
-  private static final Logger LOGGER = new Logger();
-  //private static final String MODEL_USE = "SSD";
-  private static final String MODEL_USE = "FaceBoxes";
+    private static final Logger LOGGER = new Logger();
+    //private static final String MODEL_USE = "SSD";
+    private static final String MODEL_USE = "FaceBoxes";
 
-  // Configuration values for the prepackaged SSD model.
-  private static int TF_OD_API_INPUT_SIZE = 300;
-  private static boolean TF_OD_API_IS_QUANTIZED = true;
-  private static String TF_OD_API_MODEL_FILE = "detect.tflite";
-  private static String TF_OD_API_LABELS_FILE = "file:///android_asset/labelmap.txt";
+    // Configuration values for the prepackaged SSD model.
+    private static int TF_OD_API_INPUT_SIZE = 300;
+    private static boolean TF_OD_API_IS_QUANTIZED = true;
+    private static String TF_OD_API_MODEL_FILE = "detect.tflite";
+    private static String TF_OD_API_LABELS_FILE = "file:///android_asset/labelmap.txt";
+    private static float MINIMUM_CONFIDENCE_TF_OD_API = 0.0f;
 
-  private static final DetectorMode MODE = DetectorMode.TF_OD_API;
-  // Minimum detection confidence to track a detection.
-  private static float MINIMUM_CONFIDENCE_TF_OD_API = 0.0f;
-  private static final boolean MAINTAIN_ASPECT = false;
-  private static final Size DESIRED_PREVIEW_SIZE = new Size(640, 480);
-  private static final boolean SAVE_PREVIEW_BITMAP = false;
-  private static final float TEXT_SIZE_DIP = 10;
-  OverlayView trackingOverlay;
-  private Integer sensorOrientation;
+    private static final DetectorMode MODE = DetectorMode.TF_OD_API;
+    // Minimum detection confidence to track a detection.
+    private static final boolean MAINTAIN_ASPECT = false;
+    private static final Size DESIRED_PREVIEW_SIZE = new Size(640, 480);
+    private static final boolean SAVE_PREVIEW_BITMAP = false;
+    private static final float TEXT_SIZE_DIP = 10;
+    OverlayView trackingOverlay;
+    private Integer sensorOrientation;
 
-  private Classifier detector;
+    private Classifier detector;
 
-  private long lastProcessingTimeMs;
-  private Bitmap rgbFrameBitmap = null;
-  private Bitmap croppedBitmap = null;
-  private Bitmap cropCopyBitmap = null;
+    private long lastProcessingTimeMs;
+    private Bitmap rgbFrameBitmap = null;
+    private Bitmap croppedBitmap = null;
+    private Bitmap cropCopyBitmap = null;
 
-  private boolean computingDetection = false;
+    private boolean computingDetection = false;
 
-  private long timestamp = 0;
+    private long timestamp = 0;
 
-  private Matrix frameToCropTransform;
-  private Matrix cropToFrameTransform;
+    private Matrix frameToCropTransform;
+    private Matrix cropToFrameTransform;
 
-  private MultiBoxTracker tracker;
+    private MultiBoxTracker tracker;
 
-  private byte[] luminanceCopy;
+    private byte[] luminanceCopy;
 
-  private BorderedText borderedText;
+    private BorderedText borderedText;
 
-  @Override
-  public void onPreviewSizeChosen(final Size size, final int rotation) {
-    final float textSizePx =
-        TypedValue.applyDimension(
-            TypedValue.COMPLEX_UNIT_DIP, TEXT_SIZE_DIP, getResources().getDisplayMetrics());
-    borderedText = new BorderedText(textSizePx);
-    borderedText.setTypeface(Typeface.MONOSPACE);
+    @Override
+    public void onPreviewSizeChosen(final Size size, final int rotation) {
+        final float textSizePx =
+            TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP, TEXT_SIZE_DIP, getResources().getDisplayMetrics());
+        borderedText = new BorderedText(textSizePx);
+        borderedText.setTypeface(Typeface.MONOSPACE);
 
-    tracker = new MultiBoxTracker(this);
+        tracker = new MultiBoxTracker(this);
 
-    int cropSize = TF_OD_API_INPUT_SIZE;
+        int cropSize = TF_OD_API_INPUT_SIZE;
 
-    try {
-      // TODO
-      if (MODEL_USE == "SSD") {
-        detector = TFLiteObjectDetectionAPIModel.create(
-                        getAssets(),
-                        TF_OD_API_MODEL_FILE,
-                        TF_OD_API_LABELS_FILE,
-                        TF_OD_API_INPUT_SIZE,
-                        TF_OD_API_IS_QUANTIZED);
-        cropSize = TF_OD_API_INPUT_SIZE;
-        MINIMUM_CONFIDENCE_TF_OD_API = 0.5f;
-      } else {
-        TF_OD_API_INPUT_SIZE = 1024;
-        TF_OD_API_IS_QUANTIZED = false;
-        TF_OD_API_MODEL_FILE = "faceboxes_float.tflite";
-        TF_OD_API_LABELS_FILE = "file:///android_asset/faceboxes_label.txt";
+        try {
+            // TODO
+            if (MODEL_USE == "SSD") {
+                TF_OD_API_INPUT_SIZE = 300;
+                TF_OD_API_IS_QUANTIZED = true;
+                TF_OD_API_MODEL_FILE = "detect.tflite";
+                TF_OD_API_LABELS_FILE = "file:///android_asset/labelmap.txt";
+                MINIMUM_CONFIDENCE_TF_OD_API = 0.5f;
 
-        detector = TFLiteFaceBoxesAPIModel.create(
-                        getAssets(),
-                        TF_OD_API_MODEL_FILE,
-                        TF_OD_API_LABELS_FILE,
-                        TF_OD_API_INPUT_SIZE,
-                        TF_OD_API_IS_QUANTIZED);
-        cropSize = TF_OD_API_INPUT_SIZE;
-        MINIMUM_CONFIDENCE_TF_OD_API = 0.0f;
-      }
+                detector = TFLiteObjectDetectionAPIModel.create(
+                                getAssets(),
+                                TF_OD_API_MODEL_FILE,
+                                TF_OD_API_LABELS_FILE,
+                                TF_OD_API_INPUT_SIZE,
+                                TF_OD_API_IS_QUANTIZED);
+                cropSize = TF_OD_API_INPUT_SIZE;
+            } else {
+                TF_OD_API_INPUT_SIZE = 1024;
+                TF_OD_API_IS_QUANTIZED = false;
+                TF_OD_API_MODEL_FILE = "faceboxes_float.tflite";
+                TF_OD_API_LABELS_FILE = "file:///android_asset/faceboxes_label.txt";
+                MINIMUM_CONFIDENCE_TF_OD_API = 0.0f;
 
-    } catch (final IOException e) {
-      e.printStackTrace();
-      LOGGER.e("Exception initializing classifier!", e);
-      Toast toast =
-          Toast.makeText(
-              getApplicationContext(), "Classifier could not be initialized", Toast.LENGTH_SHORT);
-      toast.show();
-      finish();
-    }
-
-    previewWidth = size.getWidth();
-    previewHeight = size.getHeight();
-
-    sensorOrientation = rotation - getScreenOrientation();
-    LOGGER.i("Camera orientation relative to screen canvas: %d", sensorOrientation);
-
-    LOGGER.i("Initializing at size %dx%d", previewWidth, previewHeight);
-    rgbFrameBitmap = Bitmap.createBitmap(previewWidth, previewHeight, Config.ARGB_8888);
-    croppedBitmap = Bitmap.createBitmap(cropSize, cropSize, Config.ARGB_8888);
-
-    frameToCropTransform =
-        ImageUtils.getTransformationMatrix(
-            previewWidth, previewHeight,
-            cropSize, cropSize,
-            sensorOrientation, MAINTAIN_ASPECT);
-
-    cropToFrameTransform = new Matrix();
-    frameToCropTransform.invert(cropToFrameTransform);
-
-    trackingOverlay = (OverlayView) findViewById(R.id.tracking_overlay);
-    trackingOverlay.addCallback(
-        new DrawCallback() {
-          @Override
-          public void drawCallback(final Canvas canvas) {
-            tracker.draw(canvas);
-            if (isDebug()) {
-              tracker.drawDebug(canvas);
+                detector = TFLiteFaceBoxesAPIModel.create(
+                                getAssets(),
+                                TF_OD_API_MODEL_FILE,
+                                TF_OD_API_LABELS_FILE,
+                                TF_OD_API_INPUT_SIZE,
+                                TF_OD_API_IS_QUANTIZED);
+                cropSize = TF_OD_API_INPUT_SIZE;
             }
-          }
-        });
-  }
+
+        } catch (final IOException e) {
+            e.printStackTrace();
+            LOGGER.e("Exception initializing classifier!", e);
+            Toast toast =
+                  Toast.makeText(
+                      getApplicationContext(), "Classifier could not be initialized", Toast.LENGTH_SHORT);
+            toast.show();
+            finish();
+        }
+
+        previewWidth = size.getWidth();
+        previewHeight = size.getHeight();
+
+        sensorOrientation = rotation - getScreenOrientation();
+        LOGGER.i("Camera orientation relative to screen canvas: %d", sensorOrientation);
+
+        LOGGER.i("Initializing at size %dx%d", previewWidth, previewHeight);
+        rgbFrameBitmap = Bitmap.createBitmap(previewWidth, previewHeight, Config.ARGB_8888);
+        croppedBitmap = Bitmap.createBitmap(cropSize, cropSize, Config.ARGB_8888);
+
+        frameToCropTransform =
+            ImageUtils.getTransformationMatrix(
+                previewWidth, previewHeight,
+                cropSize, cropSize,
+                sensorOrientation, MAINTAIN_ASPECT);
+
+        cropToFrameTransform = new Matrix();
+        frameToCropTransform.invert(cropToFrameTransform);
+
+        trackingOverlay = (OverlayView) findViewById(R.id.tracking_overlay);
+        trackingOverlay.addCallback(
+            new DrawCallback() {
+                @Override
+                public void drawCallback(final Canvas canvas) {
+                    tracker.draw(canvas);
+                    if (isDebug()) {
+                      tracker.drawDebug(canvas);
+                    }
+                }
+            });
+    }
 
   @Override
   protected void processImage() {
