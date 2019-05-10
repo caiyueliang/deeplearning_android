@@ -57,7 +57,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     private static boolean TF_OD_API_IS_QUANTIZED = true;
     private static String TF_OD_API_MODEL_FILE = "detect.tflite";
     private static String TF_OD_API_LABELS_FILE = "file:///android_asset/labelmap.txt";
-    private static float MINIMUM_CONFIDENCE_TF_OD_API = 0.0f;
+    private static float MINIMUM_CONFIDENCE_TF_OD_API = 0.5f;
 
     private static final DetectorMode MODE = DetectorMode.TF_OD_API;
     // Minimum detection confidence to track a detection.
@@ -107,6 +107,8 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                 TF_OD_API_IS_QUANTIZED = true;
                 TF_OD_API_MODEL_FILE = "detect.tflite";
                 TF_OD_API_LABELS_FILE = "file:///android_asset/labelmap.txt";
+                //TF_OD_API_MODEL_FILE = "face_ssd.tflite";
+                //TF_OD_API_LABELS_FILE = "file:///android_asset/face_ssd_label.txt";
                 MINIMUM_CONFIDENCE_TF_OD_API = 0.5f;
 
                 detector = TFLiteObjectDetectionAPIModel.create(
