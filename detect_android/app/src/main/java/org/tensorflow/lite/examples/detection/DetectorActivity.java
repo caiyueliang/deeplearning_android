@@ -150,7 +150,8 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         sensorOrientation = rotation - getScreenOrientation();
         LOGGER.i("Camera orientation relative to screen canvas: %d", sensorOrientation);
 
-        LOGGER.i("Initializing at size %dx%d", previewWidth, previewHeight);
+        LOGGER.i("[CYL] Initializing rgbFrameBitmap at size W x H: %d x %d", previewWidth, previewHeight);
+        LOGGER.i("[CYL] Initializing croppedBitmap at size W x H: %d x %d", cropSize, cropSize);
         rgbFrameBitmap = Bitmap.createBitmap(previewWidth, previewHeight, Config.ARGB_8888);
         croppedBitmap = Bitmap.createBitmap(cropSize, cropSize, Config.ARGB_8888);
 
@@ -207,7 +208,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     readyForNextImage();
 
     final Canvas canvas = new Canvas(croppedBitmap);
-    canvas.drawBitmap(rgbFrameBitmap, frameToCropTransform, null);
+    canvas.drawBitmap(rgbFrameBitmap, frameToCropTransform, null);  // 将rgbFrameBitmap画到view上
     // For examining the actual TF input.
     if (SAVE_PREVIEW_BITMAP) {
       ImageUtils.saveBitmap(croppedBitmap);

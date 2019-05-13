@@ -197,6 +197,8 @@ public abstract class CameraActivity extends AppCompatActivity
         previewHeight = previewSize.height;
         previewWidth = previewSize.width;
         rgbBytes = new int[previewWidth * previewHeight];
+
+        LOGGER.i("[CYL] [onPreviewFrame] previewSize %d x %d", previewSize.width, previewSize.height);
         onPreviewSizeChosen(new Size(previewSize.width, previewSize.height), 90);
       }
     } catch (final Exception e) {
@@ -435,6 +437,7 @@ public abstract class CameraActivity extends AppCompatActivity
                 public void onPreviewSizeChosen(final Size size, final int rotation) {
                   previewHeight = size.getHeight();
                   previewWidth = size.getWidth();
+                  LOGGER.i("[CYL] [onPreviewSizeChosen] previewSize W x H: %d x %d", previewWidth, previewHeight);
                   CameraActivity.this.onPreviewSizeChosen(size, rotation);
                 }
               },
