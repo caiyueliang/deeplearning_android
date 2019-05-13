@@ -51,6 +51,10 @@
     </RelativeLayout>
 
     <include
+        android:id="@+id/user_list_layout"
+        layout="@layout/layout_user_list" />
+
+    <include
         android:id="@+id/bottom_sheet_layout"
         layout="@layout/layout_bottom_sheet" />
 </android.support.design.widget.CoordinatorLayout>
