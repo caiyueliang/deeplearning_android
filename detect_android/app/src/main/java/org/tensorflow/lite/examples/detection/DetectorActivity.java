@@ -181,9 +181,11 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
   @Override
   protected void processImage() {
-    ++timestamp;
-    final long currTimestamp = timestamp;
-    byte[] originalLuminance = getLuminance();
+    ++timestamp;                                        // 时间戳累加
+    final long currTimestamp = timestamp;               // 时间戳
+    byte[] originalLuminance = getLuminance();          // 获取亮度
+
+    // tracker第一次调用会初始化
     tracker.onFrame(
         previewWidth,
         previewHeight,
@@ -191,7 +193,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         sensorOrientation,
         originalLuminance,
         timestamp);
-    //trackingOverlay.postInvalidate();       // 本质是调用View的onDraw()绘制。主线程之外，用postInvalidate()。
+    trackingOverlay.postInvalidate();       // 本质是调用View的onDraw()绘制。主线程之外，用postInvalidate()。
 
     // No mutex needed as this method is not reentrant.
     if (computingDetection) {

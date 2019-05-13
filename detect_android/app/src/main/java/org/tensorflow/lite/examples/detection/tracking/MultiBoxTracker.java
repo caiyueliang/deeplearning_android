@@ -193,10 +193,12 @@ public class MultiBoxTracker {
       final int sensorOrientation,
       final byte[] frame,
       final long timestamp) {
+
+    // 第一次会进行objectTracker初始化
     if (objectTracker == null && !initialized) {
       ObjectTracker.clearInstance();
 
-      logger.i("Initializing ObjectTracker: %dx%d", w, h);
+      logger.i("[CYL][onFrame] Initializing ObjectTracker: %d x %d", w, h);
       objectTracker = ObjectTracker.getInstance(w, h, rowStride, true);
       frameWidth = w;
       frameHeight = h;
@@ -204,8 +206,7 @@ public class MultiBoxTracker {
       initialized = true;
 
       if (objectTracker == null) {
-        String message =
-            "Object tracking support not found. "
+        String message = "Object tracking support not found. "
                 + "See tensorflow/examples/android/README.md for details.";
         Toast.makeText(context, message, Toast.LENGTH_LONG).show();
         logger.e(message);
@@ -218,14 +219,14 @@ public class MultiBoxTracker {
 
     objectTracker.nextFrame(frame, null, timestamp, null, true);
 
+    // 清除任何不值得再追踪的物体。
     // Clean up any objects not worth tracking any more.
-    final LinkedList<TrackedRecognition> copyList =
-        new LinkedList<TrackedRecognition>(trackedObjects);
+    final LinkedList<TrackedRecognition> copyList = new LinkedList<TrackedRecognition>(trackedObjects);
     for (final TrackedRecognition recognition : copyList) {
       final ObjectTracker.TrackedObject trackedObject = recognition.trackedObject;
       final float correlation = trackedObject.getCurrentCorrelation();
       if (correlation < MIN_CORRELATION) {
-        logger.v("Removing tracked object %s because NCC is %.2f", trackedObject, correlation);
+        logger.v("[CYL] Removing tracked object %s because NCC is %.2f", trackedObject, correlation);
         trackedObject.stopTracking();
         trackedObjects.remove(recognition);
 
@@ -411,8 +412,7 @@ public class MultiBoxTracker {
 
     // 在从颜色队列中提取颜色之前，请使用替换对象中的颜色。
     // Use the color from a replaced object before taking one from the color queue.
-    trackedRecognition.color =
-        recogToReplace != null ? recogToReplace.color : availableColors.poll();
+    trackedRecognition.color = recogToReplace != null ? recogToReplace.color : availableColors.poll();
     trackedObjects.add(trackedRecognition);
   }
 
