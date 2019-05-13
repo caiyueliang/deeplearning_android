@@ -175,9 +175,9 @@ public class TFLiteFaceBoxesAPIModel implements Classifier {
                     //imgData.putFloat((((pixelValue >> 16) & 0xFF) - IMAGE_MEAN) / IMAGE_STD);
                     //imgData.putFloat((((pixelValue >> 8) & 0xFF) - IMAGE_MEAN) / IMAGE_STD);
                     //imgData.putFloat(((pixelValue & 0xFF) - IMAGE_MEAN) / IMAGE_STD);
-                    //imgData.putFloat(((pixelValue >> 16) & 0xFF) / 255.0f);
-                    //imgData.putFloat(((pixelValue >> 8) & 0xFF) / 255.0f);
-                    //imgData.putFloat((pixelValue & 0xFF) / 255.0f);
+                    //imgData.putFloat(((pixelValue >> 16) & 0xFF) * 1.0f / 255.0f);
+                    //imgData.putFloat(((pixelValue >> 8) & 0xFF) * 1.0f / 255.0f);
+                    //imgData.putFloat((pixelValue & 0xFF) * 1.0f / 255.0f);
                     imgData.putFloat(((pixelValue >> 16) & 0xFF) * 1.0f);
                     imgData.putFloat(((pixelValue >> 8) & 0xFF) * 1.0f);
                     imgData.putFloat((pixelValue & 0xFF) * 1.0f);
