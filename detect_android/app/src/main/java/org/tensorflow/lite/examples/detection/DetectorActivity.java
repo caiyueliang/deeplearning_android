@@ -148,13 +148,15 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         previewHeight = size.getHeight();
 
         sensorOrientation = rotation - getScreenOrientation();
-        LOGGER.i("Camera orientation relative to screen canvas: %d", sensorOrientation);
+        LOGGER.i("[CYL] Camera orientation relative to screen canvas: %d", sensorOrientation);
 
         LOGGER.i("[CYL] Initializing rgbFrameBitmap at size W x H: %d x %d", previewWidth, previewHeight);
         LOGGER.i("[CYL] Initializing croppedBitmap at size W x H: %d x %d", cropSize, cropSize);
-        rgbFrameBitmap = Bitmap.createBitmap(previewWidth, previewHeight, Config.ARGB_8888);
-        croppedBitmap = Bitmap.createBitmap(cropSize, cropSize, Config.ARGB_8888);
+        rgbFrameBitmap = Bitmap.createBitmap(previewWidth, previewHeight, Config.ARGB_8888);        // 存放原图？
+        croppedBitmap = Bitmap.createBitmap(cropSize, cropSize, Config.ARGB_8888);                  // 存放变换后的图？（1024×1024）
 
+        // 放回转换后的矩阵，(640, 480)转(1024, 1024)，并旋转一定角度(90度的倍数)
+        // MAINTAIN_ASPECT为ture则不缩放大小，有必要会进行裁剪，这里为false
         frameToCropTransform =
             ImageUtils.getTransformationMatrix(
                 previewWidth, previewHeight,
@@ -162,9 +164,9 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                 sensorOrientation, MAINTAIN_ASPECT);
 
         cropToFrameTransform = new Matrix();
-        frameToCropTransform.invert(cropToFrameTransform);
+        frameToCropTransform.invert(cropToFrameTransform);      // 反转矩阵
 
-        trackingOverlay = (OverlayView) findViewById(R.id.tracking_overlay);
+        trackingOverlay = (OverlayView) findViewById(R.id.tracking_overlay);    // 覆盖视图
         trackingOverlay.addCallback(
             new DrawCallback() {
                 @Override
@@ -189,7 +191,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         sensorOrientation,
         originalLuminance,
         timestamp);
-    trackingOverlay.postInvalidate();
+    trackingOverlay.postInvalidate();       // 本质是调用View的onDraw()绘制。主线程之外，用postInvalidate()。
 
     // No mutex needed as this method is not reentrant.
     if (computingDetection) {
@@ -199,6 +201,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     computingDetection = true;
     LOGGER.i("Preparing image " + currTimestamp + " for detection in bg thread.");
 
+    // 将rgbFrameBitmap位图中的像素替换(填充)为getRgbBytes()返回的数组中的颜色值。数组中的每个元素都是int型（ARGB_8888格式）
     rgbFrameBitmap.setPixels(getRgbBytes(), 0, previewWidth, 0, 0, previewWidth, previewHeight);
 
     if (luminanceCopy == null) {
@@ -214,6 +217,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
       ImageUtils.saveBitmap(croppedBitmap);
     }
 
+    // 在后台线程里运行run()里面的内容
     runInBackground(
         new Runnable() {
           @Override
@@ -253,12 +257,12 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                       cropToFrameTransform.mapRect(location);
 
                       result.setLocation(location);
-                      mappedRecognitions.add(result);
+                      mappedRecognitions.add(result);               // 识别到的检测框
                   }
               }
 
               tracker.trackResults(mappedRecognitions, luminanceCopy, currTimestamp);
-              trackingOverlay.postInvalidate();
+              trackingOverlay.postInvalidate();     // 本质是调用View的onDraw()绘制。主线程之外，用postInvalidate()。
 
               computingDetection = false;
 
