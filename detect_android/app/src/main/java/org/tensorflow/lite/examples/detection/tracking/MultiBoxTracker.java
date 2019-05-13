@@ -44,13 +44,13 @@ public class MultiBoxTracker {
   private static final float TEXT_SIZE_DIP = 18;
   // Maximum percentage of a box that can be overlapped by another box at detection time. Otherwise
   // the lower scored box (new or old) will be removed.
-  private static final float MAX_OVERLAP = 0.2f;
-  private static final float MIN_SIZE = 16.0f;
+  private static final float MAX_OVERLAP = 0.2f;                // 在检测单元时间里，设置的检测框重叠的最大百分比。否则将删除得分较低的框（新框或旧框）。
+  private static final float MIN_SIZE = 10.0f;
   // Allow replacement of the tracked box with new results if
   // correlation has dropped below this level.
-  private static final float MARGINAL_CORRELATION = 0.75f;
+  private static final float MARGINAL_CORRELATION = 0.75f;      // 如果相关度低于此级别，则允许用新结果替换跟踪框。
   // Consider object to be lost if correlation falls below this threshold.
-  private static final float MIN_CORRELATION = 0.3f;
+  private static final float MIN_CORRELATION = 0.3f;            // 如果相关性低于此阈值，则考虑对象丢失。
   private static final int[] COLORS = {
     Color.BLUE,
     Color.RED,
@@ -143,8 +143,7 @@ public class MultiBoxTracker {
     objectTracker.drawDebug(canvas, matrix);
   }
 
-  public synchronized void trackResults(
-      final List<Recognition> results, final byte[] frame, final long timestamp) {
+  public synchronized void trackResults(final List<Recognition> results, final byte[] frame, final long timestamp) {
     logger.i("Processing %d results from %d", results.size(), timestamp);
     processResults(timestamp, results, frame);
   }
@@ -235,8 +234,7 @@ public class MultiBoxTracker {
     }
   }
 
-  private void processResults(
-      final long timestamp, final List<Recognition> results, final byte[] originalFrame) {
+  private void processResults(final long timestamp, final List<Recognition> results, final byte[] originalFrame) {
     final List<Pair<Float, Recognition>> rectsToTrack = new LinkedList<Pair<Float, Recognition>>();
 
     screenRects.clear();
@@ -251,13 +249,13 @@ public class MultiBoxTracker {
       final RectF detectionScreenRect = new RectF();
       rgbFrameToScreen.mapRect(detectionScreenRect, detectionFrameRect);
 
-      logger.v(
-          "Result! Frame: " + result.getLocation() + " mapped to screen:" + detectionScreenRect);
+      logger.i("Result! Frame: " + result.getLocation() + " mapped to screen:" + detectionScreenRect);
 
       screenRects.add(new Pair<Float, RectF>(result.getConfidence(), detectionScreenRect));
 
       if (detectionFrameRect.width() < MIN_SIZE || detectionFrameRect.height() < MIN_SIZE) {
-        logger.w("Degenerate rectangle! " + detectionFrameRect);
+        // 宽高太小，就过滤掉
+        logger.w("rectangle! to small !!!" + detectionFrameRect);
         continue;
       }
 
@@ -265,7 +263,7 @@ public class MultiBoxTracker {
     }
 
     if (rectsToTrack.isEmpty()) {
-      logger.v("Nothing to track, aborting.");
+      logger.i("Nothing to track, aborting.");
       return;
     }
 
@@ -289,22 +287,23 @@ public class MultiBoxTracker {
 
     logger.i("%d rects to track", rectsToTrack.size());
     for (final Pair<Float, Recognition> potential : rectsToTrack) {
+      // 追踪每个框，本次的每个框和之前保存的框进行比较对比？
       handleDetection(originalFrame, timestamp, potential);
     }
   }
 
-  private void handleDetection(
-      final byte[] frameCopy, final long timestamp, final Pair<Float, Recognition> potential) {
+  private void handleDetection(final byte[] frameCopy, final long timestamp, final Pair<Float, Recognition> potential) {
     final ObjectTracker.TrackedObject potentialObject =
         objectTracker.trackObject(potential.second.getLocation(), timestamp, frameCopy);
 
+    // 获取相关度
     final float potentialCorrelation = potentialObject.getCurrentCorrelation();
-    logger.v(
-        "Tracked object went from %s to %s with correlation %.2f",
+    logger.v("Tracked object went from %s to %s with correlation %.2f",
         potential.second, potentialObject.getTrackedPositionInPreviewFrame(), potentialCorrelation);
 
+    // 相关度是否过低
     if (potentialCorrelation < MARGINAL_CORRELATION) {
-      logger.v("Correlation too low to begin tracking %s.", potentialObject);
+      logger.v("[CYL] Correlation too low to begin tracking %s.", potentialObject);
       potentialObject.stopTracking();
       return;
     }
@@ -313,10 +312,12 @@ public class MultiBoxTracker {
 
     float maxIntersect = 0.0f;
 
+    // 这是当前跟踪对象的颜色。如果留空，我们将从颜色队列中提取第一个。
     // This is the current tracked object whose color we will take. If left null we'll take the
     // first one from the color queue.
     TrackedRecognition recogToReplace = null;
 
+    // 查找将被此对象覆盖的交集或将阻止放置此交集的交集。
     // Look for intersections that will be overridden by this object or an intersection that would
     // prevent this one from being placed.
     for (final TrackedRecognition trackedRecognition : trackedObjects) {
@@ -329,6 +330,7 @@ public class MultiBoxTracker {
       final float totalArea = a.width() * a.height() + b.width() * b.height() - intersectArea;
       final float intersectOverUnion = intersectArea / totalArea;
 
+      // 如果与当前跟踪框的交集超过了允许的最大重叠百分比，则需要取消新的识别，或者需要删除旧的识别，并可能替换为新的识别。
       // If there is an intersection with this currently tracked box above the maximum overlap
       // percentage allowed, either the new recognition needs to be dismissed or the old
       // recognition needs to be removed and possibly replaced with the new one.
@@ -342,6 +344,7 @@ public class MultiBoxTracker {
         } else {
           removeList.add(trackedRecognition);
 
+          // 让之前跟踪的最大交集量的对象将其颜色赋值给新对象。
           // Let the previously tracked object with max intersection amount donate its color to
           // the new object.
           if (intersectOverUnion > maxIntersect) {
@@ -352,6 +355,7 @@ public class MultiBoxTracker {
       }
     }
 
+    // 如果我们已经跟踪了max对象，并且没有发现任何交叉点出现，那么选择要删除的最差的当前跟踪对象，如果它也比这个候选对象差。
     // If we're already tracking the max object and no intersections were found to bump off,
     // pick the worst current tracked object to remove, if it's also worse than this candidate
     // object.
@@ -373,10 +377,10 @@ public class MultiBoxTracker {
       }
     }
 
+    // 移除所有相交的部分。
     // Remove everything that got intersected.
     for (final TrackedRecognition trackedRecognition : removeList) {
-      logger.v(
-          "Removing tracked object %s with detection confidence %.2f, correlation %.2f",
+      logger.v("Removing tracked object %s with detection confidence %.2f, correlation %.2f",
           trackedRecognition.trackedObject,
           trackedRecognition.detectionConfidence,
           trackedRecognition.trackedObject.getCurrentCorrelation());
@@ -393,9 +397,9 @@ public class MultiBoxTracker {
       return;
     }
 
+    // 最后安全地说，我们可以跟踪这个物体。
     // Finally safe to say we can track this object.
-    logger.v(
-        "Tracking object %s (%s) with detection confidence %.2f at position %s",
+    logger.v("Tracking object %s (%s) with detection confidence %.2f at position %s",
         potentialObject,
         potential.second.getTitle(),
         potential.first,
@@ -405,6 +409,7 @@ public class MultiBoxTracker {
     trackedRecognition.trackedObject = potentialObject;
     trackedRecognition.title = potential.second.getTitle();
 
+    // 在从颜色队列中提取颜色之前，请使用替换对象中的颜色。
     // Use the color from a replaced object before taking one from the color queue.
     trackedRecognition.color =
         recogToReplace != null ? recogToReplace.color : availableColors.poll();

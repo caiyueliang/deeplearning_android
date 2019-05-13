@@ -164,14 +164,14 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                 sensorOrientation, MAINTAIN_ASPECT);
 
         cropToFrameTransform = new Matrix();
-        frameToCropTransform.invert(cropToFrameTransform);      // 反转矩阵
+        frameToCropTransform.invert(cropToFrameTransform);      // 反转矩阵（cropToFrameTransform是逆操作，将(1024, 1024)转(640, 480)
 
-        trackingOverlay = (OverlayView) findViewById(R.id.tracking_overlay);    // 覆盖视图
+        trackingOverlay = (OverlayView) findViewById(R.id.tracking_overlay);    // 覆盖视图View
         trackingOverlay.addCallback(
             new DrawCallback() {
                 @Override
                 public void drawCallback(final Canvas canvas) {
-                    tracker.draw(canvas);
+                    tracker.draw(canvas);                                       // 画框的函数，追踪类里面，先追踪过滤，再画
                     if (isDebug()) {
                       tracker.drawDebug(canvas);
                     }
@@ -191,7 +191,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         sensorOrientation,
         originalLuminance,
         timestamp);
-    trackingOverlay.postInvalidate();       // 本质是调用View的onDraw()绘制。主线程之外，用postInvalidate()。
+    //trackingOverlay.postInvalidate();       // 本质是调用View的onDraw()绘制。主线程之外，用postInvalidate()。
 
     // No mutex needed as this method is not reentrant.
     if (computingDetection) {
@@ -252,15 +252,19 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
                   // 判断坐标不为空并且置信度大于阈值
                   if (location != null && result.getConfidence() >= minimumConfidence) {
-                      canvas.drawRect(location, paint);             // 画检测框
+                      // canvas.drawRect(location, paint);             // 画检测框(无效)
 
+                      // 将在(1024, 1024)的坐标值，转换（映射）成在(640, 480)上的坐标值，直接修改在location中
+                      // LOGGER.i("[CYL] location old %s", location.toString());
                       cropToFrameTransform.mapRect(location);
+                      // LOGGER.i("[CYL] location new %s", location.toString());
 
                       result.setLocation(location);
-                      mappedRecognitions.add(result);               // 识别到的检测框
+                      mappedRecognitions.add(result);               // 存放识别到的检测框，用于绘制
                   }
               }
 
+              // 跟踪结果，过滤和画检测框
               tracker.trackResults(mappedRecognitions, luminanceCopy, currTimestamp);
               trackingOverlay.postInvalidate();     // 本质是调用View的onDraw()绘制。主线程之外，用postInvalidate()。
 

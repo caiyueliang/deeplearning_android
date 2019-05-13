@@ -374,11 +374,9 @@ public class ObjectTracker {
         downsampledFrameRect.bottom * DOWNSAMPLE_FACTOR);
   }
 
-  public synchronized TrackedObject trackObject(
-      final RectF position, final long timestamp, final byte[] frameData) {
+  public synchronized TrackedObject trackObject(final RectF position, final long timestamp, final byte[] frameData) {
     if (downsampledTimestamp != timestamp) {
-      ObjectTracker.downsampleImageNative(
-          frameWidth, frameHeight, rowStride, frameData, DOWNSAMPLE_FACTOR, downsampledFrame);
+      ObjectTracker.downsampleImageNative(frameWidth, frameHeight, rowStride, frameData, DOWNSAMPLE_FACTOR, downsampledFrame);
       downsampledTimestamp = timestamp;
     }
     return new TrackedObject(position, timestamp, downsampledFrame);
