@@ -20,6 +20,8 @@ import android.Manifest;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Matrix;
 import android.hardware.Camera;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
@@ -121,8 +123,9 @@ public abstract class CameraActivity extends AppCompatActivity
         // =========================================================================================
         userListScrollView = findViewById(R.id.user_list_scroll_view);      // 展示用户列表的控件
         userListLinearLayout = findViewById(R.id.user_list_linear_layout);  // 展示用户列表的控件
-        addUserListItem();
+        //addUserListItem();
 
+        // =========================================================================================
         ViewTreeObserver vto = gestureLayout.getViewTreeObserver();
         vto.addOnGlobalLayoutListener(
             new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -177,30 +180,90 @@ public abstract class CameraActivity extends AppCompatActivity
     }
 
     // =============================================================================================
-    protected void addUserListItem() {
-        //开始添加数据
-        for (int x = 0; x < 10; x++) {
-            //寻找行布局，第一个参数为行布局ID，第二个参数为这个行布局需要放到那个容器上
-            View view = LayoutInflater.from(this).inflate(R.layout.layout_user_list_item, userListLinearLayout, false);
-            //通过View寻找ID实例化控件
-            ImageView img = (ImageView) view.findViewById(R.id.img_item);
-            //实例化TextView控件
-            TextView tv = (TextView) view.findViewById(R.id.name_item);
-            //将int数组中的数据放到ImageView中
-            //img.setImageResource(image[x]);
-            //给TextView添加文字
-            tv.setText("第" + (x + 1) + "张");
-            //把行布局放到linear里
+    protected void addUserListItem(Bitmap faceImage) {
+        //寻找行布局，第一个参数为行布局ID，第二个参数为这个行布局需要放到那个容器上
+        View view = LayoutInflater.from(this).inflate(R.layout.layout_user_list_item, userListLinearLayout, false);
+        //通过View寻找ID实例化控件
+        ImageView img = (ImageView) view.findViewById(R.id.img_item);
+        //实例化TextView控件
+        TextView tv = (TextView) view.findViewById(R.id.name_item);
+        //将int数组中的数据放到ImageView中
+        //img.setImageResource(image[x]);
+        img.setImageBitmap(faceImage);
+        //给TextView添加文字
+        tv.setText("第" + (userListLinearLayout.getChildCount() + 1) + "张");
+        //把行布局放到linear里
 
-            LOGGER.d("[CYL] addUserListItem getChildCount %d", userListLinearLayout.getChildCount());
-            if (userListLinearLayout.getChildCount() >= MAX_USER_SHOW) {
-                userListLinearLayout.removeViewAt(0);
-                userListLinearLayout.addView(view);
-            } else {
-                userListLinearLayout.addView(view);
-            }
-
+        LOGGER.i("[CYL] addUserListItem getChildCount %d", userListLinearLayout.getChildCount());
+        if (userListLinearLayout.getChildCount() >= MAX_USER_SHOW) {
+            userListLinearLayout.removeViewAt(0);
+            userListLinearLayout.addView(view);
+        } else {
+            userListLinearLayout.addView(view);
         }
+    }
+
+    /**
+     * 根据给定的宽和高进行拉伸
+     *
+     * @param origin    原图
+     * @param newWidth  新图的宽
+     * @param newHeight 新图的高
+     * @return new Bitmap
+     */
+    private Bitmap scaleBitmap(Bitmap origin, int newWidth, int newHeight) {
+        if (origin == null) {
+            return null;
+        }
+        int height = origin.getHeight();
+        int width = origin.getWidth();
+        float scaleWidth = ((float) newWidth) / width;
+        float scaleHeight = ((float) newHeight) / height;
+        Matrix matrix = new Matrix();
+        matrix.postScale(scaleWidth, scaleHeight);// 使用后乘
+        Bitmap newBM = Bitmap.createBitmap(origin, 0, 0, width, height, matrix, false);
+        if (!origin.isRecycled()) {
+            origin.recycle();
+        }
+        return newBM;
+    }
+
+    /**
+     * 按比例缩放图片
+     *
+     * @param origin 原图
+     * @param ratio  比例
+     * @return 新的bitmap
+     */
+    private Bitmap scaleBitmap(Bitmap origin, float ratio) {
+        if (origin == null) {
+            return null;
+        }
+        int width = origin.getWidth();
+        int height = origin.getHeight();
+        Matrix matrix = new Matrix();
+        matrix.preScale(ratio, ratio);
+        Bitmap newBM = Bitmap.createBitmap(origin, 0, 0, width, height, matrix, false);
+        if (newBM.equals(origin)) {
+            return newBM;
+        }
+        origin.recycle();
+        return newBM;
+    }
+
+    /**
+     * 裁剪
+     *
+     * @param bitmap 原图
+     * @return 裁剪后的图像
+     */
+    private Bitmap cropBitmap(Bitmap bitmap, int x, int y, int w, int h) {
+        //int w = bitmap.getWidth(); // 得到图片的宽，高
+        //int h = bitmap.getHeight();
+        //int cropWidth = w >= h ? h : w;// 裁切后所取的正方形区域边长
+        //cropWidth /= 2;
+        //int cropHeight = (int) (cropWidth / 1.2);
+        return Bitmap.createBitmap(bitmap, x, y, w, h, null, false);
     }
 
     // =============================================================================================
