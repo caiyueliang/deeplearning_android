@@ -50,7 +50,7 @@
         </android.support.v7.widget.Toolbar>
 
         <HorizontalScrollView
-            android:id="@+id/user_list"
+            android:id="@+id/user_list_scroll_view"
             android:layout_width="match_parent"
             android:layout_height="200dp"
             android:layout_marginBottom="0dp"
@@ -58,7 +58,7 @@
             android:background="@color/colorAccent">
 
             <LinearLayout
-                android:id="@+id/list"
+                android:id="@+id/user_list_linear_layout"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:orientation="horizontal">
