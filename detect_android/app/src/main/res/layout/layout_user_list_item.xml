@@ -5,9 +5,9 @@
     android:layout_height="match_parent"
     android:paddingLeft="2dip"
     android:paddingRight="2dip"
-    android:paddingTop="2dip"
+    android:paddingTop="4dip"
     android:paddingBottom="2dip"
-    android:gravity="center"
+    android:gravity="center_horizontal"
     android:background="@color/design_default_color_primary">
     <ImageView
         android:id="@+id/img_item"
