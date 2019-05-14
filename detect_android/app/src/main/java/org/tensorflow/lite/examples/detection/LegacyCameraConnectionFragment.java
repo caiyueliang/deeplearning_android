@@ -179,21 +179,25 @@ public class LegacyCameraConnectionFragment extends Fragment {
     }
   }
 
-  protected void stopCamera() {
-    if (camera != null) {
-      camera.stopPreview();
-      camera.setPreviewCallback(null);
-      camera.release();
-      camera = null;
+    protected void stopCamera() {
+        if (camera != null) {
+            camera.stopPreview();
+            camera.setPreviewCallback(null);
+            camera.release();
+            camera = null;
+        }
     }
-  }
 
     private int getCameraId() {
         CameraInfo ci = new CameraInfo();
+        LOGGER.i("[CYL][getCameraId] getNumberOfCameras %d", Camera.getNumberOfCameras());
         for (int i = 0; i < Camera.getNumberOfCameras(); i++) {
             Camera.getCameraInfo(i, ci);
-            //if (ci.facing == CameraInfo.CAMERA_FACING_FRONT) return i;
-            if (ci.facing == CameraInfo.CAMERA_FACING_BACK) return i;
+            LOGGER.i("[CYL][getCameraId] getCameraInfo %s", ci.toString());
+            // if (ci.facing == CameraInfo.CAMERA_FACING_FRONT)
+            //    return i;
+            if (ci.facing == CameraInfo.CAMERA_FACING_BACK)
+                return i;
         }
         return -1; // No camera found
     }
