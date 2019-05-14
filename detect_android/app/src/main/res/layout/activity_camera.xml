@@ -58,8 +58,8 @@
             android:background="@color/colorAccent">
 
             <LinearLayout
-                android:id="@+id/item"
-                android:layout_width="wrap_content"
+                android:id="@+id/list"
+                android:layout_width="110dp"
                 android:layout_height="match_parent"
                 android:orientation="horizontal">
             </LinearLayout>

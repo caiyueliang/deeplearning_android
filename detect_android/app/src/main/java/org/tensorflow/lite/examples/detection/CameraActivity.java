@@ -40,6 +40,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SwitchCompat;
 import android.support.v7.widget.Toolbar;
 import android.util.Size;
+import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -82,6 +83,7 @@ public abstract class CameraActivity extends AppCompatActivity
     private BottomSheetBehavior sheetBehavior;
 
     private HorizontalScrollView userListScrollView;        // 展示用户列表的控件
+    private LinearLayout userListLinearLayout;
 
     protected TextView frameValueTextView, cropValueTextView, inferenceTimeTextView;
     protected ImageView bottomSheetArrowImageView;
@@ -116,6 +118,23 @@ public abstract class CameraActivity extends AppCompatActivity
         bottomSheetArrowImageView = findViewById(R.id.bottom_sheet_arrow);
 
         userListScrollView = findViewById(R.id.user_list);                  // 展示用户列表的控件
+
+        userListLinearLayout = (LinearLayout) findViewById(R.id.list);
+        //开始添加数据
+        for(int x = 0; x < 8; x++){
+            //寻找行布局，第一个参数为行布局ID，第二个参数为这个行布局需要放到那个容器上
+            View view = LayoutInflater.from(this).inflate(R.layout.layout_user_list_item, userListLinearLayout, false);
+            //通过View寻找ID实例化控件
+            ImageView img = (ImageView) view.findViewById(R.id.img_item);
+            //实例化TextView控件
+            TextView tv = (TextView) view.findViewById(R.id.name_item);
+            //将int数组中的数据放到ImageView中
+            //img.setImageResource(image[x]);
+            //给TextView添加文字
+            tv.setText("第" + (x + 1) + "张");
+            //把行布局放到linear里
+            userListLinearLayout.addView(view);
+        }
 
         ViewTreeObserver vto = gestureLayout.getViewTreeObserver();
         vto.addOnGlobalLayoutListener(
