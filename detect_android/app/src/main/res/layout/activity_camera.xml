@@ -16,23 +16,23 @@
 
 <android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/base"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#00000000">
 
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/camera_base"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@android:color/black"
-        android:orientation="vertical">
-
+        android:background="@android:color/black">
 
         <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:tools="http://schemas.android.com/tools"
             android:id="@+id/container"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             tools:context="org.tensorflow.demo.CameraActivity" />
 
         <android.support.v7.widget.Toolbar
@@ -43,12 +43,21 @@
             android:background="@color/semi_transparent">
 
             <ImageView
+                android:id="@+id/tfl_logo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/tfl_logo" />
         </android.support.v7.widget.Toolbar>
 
-    </LinearLayout>
+        <ListView
+            android:layout_width="match_parent"
+            android:layout_height="140dp"
+            android:layout_marginBottom="100dp"
+            android:layout_alignParentBottom="true"
+            android:background="@color/colorAccent">
+        </ListView>
+
+    </RelativeLayout>
 
     <!--<include-->
         <!--android:id="@+id/user_list_layout"-->
