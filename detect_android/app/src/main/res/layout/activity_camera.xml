@@ -49,13 +49,13 @@
                 android:src="@drawable/tfl_logo" />
         </android.support.v7.widget.Toolbar>
 
-        <ListView
+        <HorizontalScrollView
             android:layout_width="match_parent"
-            android:layout_height="140dp"
-            android:layout_marginBottom="100dp"
+            android:layout_height="200dp"
+            android:layout_marginBottom="0dp"
             android:layout_alignParentBottom="true"
             android:background="@color/colorAccent">
-        </ListView>
+        </HorizontalScrollView>
 
     </RelativeLayout>
 
