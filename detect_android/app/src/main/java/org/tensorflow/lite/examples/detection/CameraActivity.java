@@ -21,7 +21,9 @@ import android.app.Fragment;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.RectF;
 import android.hardware.Camera;
 import android.hardware.camera2.CameraAccessException;
@@ -181,15 +183,32 @@ public abstract class CameraActivity extends AppCompatActivity
     }
 
     // =============================================================================================
-    protected void addUserListItem(Bitmap SrcImage, RectF location) {
-        LOGGER.i("[CYL] addUserListItem w * h: %d * %d", SrcImage.getWidth(), SrcImage.getHeight());
-        LOGGER.i("[CYL] addUserListItem location %s", location.toString());
-        Bitmap faceImage = rotateBitmap(SrcImage, 90);
-        LOGGER.i("[CYL] addUserListItem w * h: %d * %d", SrcImage.getWidth(), SrcImage.getHeight());
-        faceImage = cropBitmap(faceImage, (int)location.left, (int)location.top,
+    protected void addUserListItem(Bitmap SrcImage, RectF location, Integer orientation) {
+        int faceWidth = 90;
+        int faceHeight = 100;
+
+        LOGGER.i("[CYL] addUserListItem w * h: %d * %d, %d",
+                SrcImage.getWidth(), SrcImage.getHeight(), orientation);
+        LOGGER.i("[CYL] addUserListItem old location %s", location.toString());
+
+        if (location.left < 0) location.left = 0;
+        if (location.top < 0) location.top = 0;
+        if (location.right > SrcImage.getWidth()) location.right = SrcImage.getWidth();
+        if (location.bottom > SrcImage.getHeight()) location.bottom = SrcImage.getHeight();
+
+        Bitmap faceImage = cropBitmap(SrcImage, (int)location.left, (int)location.top,
                 (int)(location.right - location.left), (int)(location.bottom - location.top));
-        Bitmap newBitmap = scaleBitmap(faceImage, 90, 100);
+        Bitmap newBitmap = scaleBitmap(faceImage, faceHeight, faceHeight);
         LOGGER.i("[CYL] addUserListItem w * h: %d * %d", newBitmap.getWidth(), newBitmap.getHeight());
+
+        Matrix frameToCropTransform =
+                ImageUtils.getTransformationMatrix(
+                        faceHeight, faceHeight,
+                        faceWidth, faceHeight,
+                        orientation, false);
+        Bitmap croppedBitmap = Bitmap.createBitmap(faceWidth, faceHeight, Bitmap.Config.ARGB_8888);
+        final Canvas canvas = new Canvas(croppedBitmap);
+        canvas.drawBitmap(newBitmap, frameToCropTransform, null);
 
         //寻找行布局，第一个参数为行布局ID，第二个参数为这个行布局需要放到那个容器上
         View view = LayoutInflater.from(this).inflate(R.layout.layout_user_list_item, userListLinearLayout, false);
@@ -199,7 +218,7 @@ public abstract class CameraActivity extends AppCompatActivity
         TextView tv = (TextView) view.findViewById(R.id.name_item);
         //将int数组中的数据放到ImageView中
         //img.setImageResource(image[x]);
-        img.setImageBitmap(newBitmap);
+        img.setImageBitmap(croppedBitmap);
         //给TextView添加文字
         tv.setText("第" + (userListLinearLayout.getChildCount() + 1) + "张");
         //把行布局放到linear里
@@ -293,6 +312,35 @@ public abstract class CameraActivity extends AppCompatActivity
         }
         origin.recycle();
         return newBM;
+    }
+    Bitmap adjustPhotoRotation(Bitmap bm, final int orientationDegree) {
+
+        Matrix m = new Matrix();
+        m.setRotate(orientationDegree, (float) bm.getWidth() / 2, (float) bm.getHeight() / 2);
+        float targetX, targetY;
+        if (orientationDegree == 90) {
+            targetX = bm.getHeight();
+            targetY = 0;
+        } else {
+            targetX = bm.getHeight();
+            targetY = bm.getWidth();
+        }
+
+        final float[] values = new float[9];
+        m.getValues(values);
+
+        float x1 = values[Matrix.MTRANS_X];
+        float y1 = values[Matrix.MTRANS_Y];
+
+        m.postTranslate(targetX - x1, targetY - y1);
+
+        Bitmap bm1 = Bitmap.createBitmap(bm.getHeight(), bm.getWidth(), Bitmap.Config.ARGB_8888);
+
+        Paint paint = new Paint();
+        Canvas canvas = new Canvas(bm1);
+        canvas.drawBitmap(bm, m, paint);
+
+        return bm1;
     }
     // =============================================================================================
     protected int[] getRgbBytes() {

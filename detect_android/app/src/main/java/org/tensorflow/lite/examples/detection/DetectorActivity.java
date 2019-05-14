@@ -123,7 +123,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                 TF_OD_API_IS_QUANTIZED = false;
                 TF_OD_API_MODEL_FILE = "faceboxes_float.tflite";
                 TF_OD_API_LABELS_FILE = "file:///android_asset/faceboxes_label.txt";
-                MINIMUM_CONFIDENCE_TF_OD_API = 0.6f;
+                MINIMUM_CONFIDENCE_TF_OD_API = 0.8f;
 
                 detector = TFLiteFaceBoxesAPIModel.create(
                                 getAssets(),
@@ -266,7 +266,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                       runOnUiThread(new Runnable() {
                           @Override
                           public void run() {
-                              addUserListItem(rgbFrameBitmap, location);
+                              addUserListItem(rgbFrameBitmap, location, sensorOrientation);
                           }
                       });
                   }
