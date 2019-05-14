@@ -89,7 +89,9 @@ public abstract class CameraActivity extends AppCompatActivity
 
     private HorizontalScrollView userListScrollView;        // 展示用户列表的控件
     private LinearLayout userListLinearLayout;
+
     private static int MAX_USER_SHOW = 6;                   // 用户最多显示个数
+    private int captureId = 0;
 
     protected TextView frameValueTextView, cropValueTextView, inferenceTimeTextView;
     protected ImageView bottomSheetArrowImageView;
@@ -183,12 +185,12 @@ public abstract class CameraActivity extends AppCompatActivity
     }
 
     // =============================================================================================
-    protected void addUserListItem(Bitmap SrcImage, RectF location, Integer orientation) {
+    protected void addUserListItem(Bitmap SrcImage, RectF location, float conf, Integer orientation) {
         int faceWidth = 90;
         int faceHeight = 100;
 
-        LOGGER.i("[CYL] addUserListItem w * h: %d * %d, %d",
-                SrcImage.getWidth(), SrcImage.getHeight(), orientation);
+        LOGGER.i("[CYL] addUserListItem w * h: %d * %d, %d, %f",
+                SrcImage.getWidth(), SrcImage.getHeight(), orientation, conf);
         LOGGER.i("[CYL] addUserListItem old location %s", location.toString());
 
         if (location.left < 0) location.left = 0;
@@ -215,12 +217,16 @@ public abstract class CameraActivity extends AppCompatActivity
         //通过View寻找ID实例化控件
         ImageView img = (ImageView) view.findViewById(R.id.img_item);
         //实例化TextView控件
-        TextView tv = (TextView) view.findViewById(R.id.name_item);
+        TextView nameTextView = (TextView) view.findViewById(R.id.name_item);
+        TextView confTextView = (TextView) view.findViewById(R.id.conf_item);
+
         //将int数组中的数据放到ImageView中
         //img.setImageResource(image[x]);
         img.setImageBitmap(croppedBitmap);
         //给TextView添加文字
-        tv.setText("第" + (userListLinearLayout.getChildCount() + 1) + "张");
+        nameTextView.setText("id: " + Integer.toString(captureId++));
+        LOGGER.i("[CYL] addUserListItem conf %s", String.format("conf: %.3f", conf));
+        confTextView.setText(String.format("conf: %.3f", conf));
         //把行布局放到linear里
 
         LOGGER.i("[CYL] addUserListItem getChildCount %d", userListLinearLayout.getChildCount());

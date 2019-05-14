@@ -266,7 +266,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                       runOnUiThread(new Runnable() {
                           @Override
                           public void run() {
-                              addUserListItem(rgbFrameBitmap, location, sensorOrientation);
+                              addUserListItem(rgbFrameBitmap, location, result.getConfidence(), sensorOrientation);
                           }
                       });
                   }
