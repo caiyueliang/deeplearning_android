@@ -123,7 +123,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                 TF_OD_API_IS_QUANTIZED = false;
                 TF_OD_API_MODEL_FILE = "faceboxes_float.tflite";
                 TF_OD_API_LABELS_FILE = "file:///android_asset/faceboxes_label.txt";
-                MINIMUM_CONFIDENCE_TF_OD_API = 0.0f;
+                MINIMUM_CONFIDENCE_TF_OD_API = 0.6f;
 
                 detector = TFLiteFaceBoxesAPIModel.create(
                                 getAssets(),
@@ -255,14 +255,20 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                   // 判断坐标不为空并且置信度大于阈值
                   if (location != null && result.getConfidence() >= minimumConfidence) {
                       // canvas.drawRect(location, paint);             // 画检测框(无效)
-
                       // 将在(1024, 1024)的坐标值，转换（映射）成在(640, 480)上的坐标值，直接修改在location中
-                      // LOGGER.i("[CYL] location old %s", location.toString());
+                      LOGGER.i("[CYL] location old %s", location.toString());
                       cropToFrameTransform.mapRect(location);
-                      // LOGGER.i("[CYL] location new %s", location.toString());
+                      LOGGER.i("[CYL] location new %s", location.toString());
 
                       result.setLocation(location);
                       mappedRecognitions.add(result);               // 存放识别到的检测框，用于绘制
+
+                      runOnUiThread(new Runnable() {
+                          @Override
+                          public void run() {
+                              addUserListItem(rgbFrameBitmap, location);
+                          }
+                      });
                   }
               }
 

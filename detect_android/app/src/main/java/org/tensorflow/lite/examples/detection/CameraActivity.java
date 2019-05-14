@@ -22,6 +22,7 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
+import android.graphics.RectF;
 import android.hardware.Camera;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
@@ -180,7 +181,16 @@ public abstract class CameraActivity extends AppCompatActivity
     }
 
     // =============================================================================================
-    protected void addUserListItem(Bitmap faceImage) {
+    protected void addUserListItem(Bitmap SrcImage, RectF location) {
+        LOGGER.i("[CYL] addUserListItem w * h: %d * %d", SrcImage.getWidth(), SrcImage.getHeight());
+        LOGGER.i("[CYL] addUserListItem location %s", location.toString());
+        Bitmap faceImage = rotateBitmap(SrcImage, 90);
+        LOGGER.i("[CYL] addUserListItem w * h: %d * %d", SrcImage.getWidth(), SrcImage.getHeight());
+        faceImage = cropBitmap(faceImage, (int)location.left, (int)location.top,
+                (int)(location.right - location.left), (int)(location.bottom - location.top));
+        Bitmap newBitmap = scaleBitmap(faceImage, 90, 100);
+        LOGGER.i("[CYL] addUserListItem w * h: %d * %d", newBitmap.getWidth(), newBitmap.getHeight());
+
         //寻找行布局，第一个参数为行布局ID，第二个参数为这个行布局需要放到那个容器上
         View view = LayoutInflater.from(this).inflate(R.layout.layout_user_list_item, userListLinearLayout, false);
         //通过View寻找ID实例化控件
@@ -189,7 +199,7 @@ public abstract class CameraActivity extends AppCompatActivity
         TextView tv = (TextView) view.findViewById(R.id.name_item);
         //将int数组中的数据放到ImageView中
         //img.setImageResource(image[x]);
-        img.setImageBitmap(faceImage);
+        img.setImageBitmap(newBitmap);
         //给TextView添加文字
         tv.setText("第" + (userListLinearLayout.getChildCount() + 1) + "张");
         //把行布局放到linear里
@@ -258,14 +268,32 @@ public abstract class CameraActivity extends AppCompatActivity
      * @return 裁剪后的图像
      */
     private Bitmap cropBitmap(Bitmap bitmap, int x, int y, int w, int h) {
-        //int w = bitmap.getWidth(); // 得到图片的宽，高
-        //int h = bitmap.getHeight();
-        //int cropWidth = w >= h ? h : w;// 裁切后所取的正方形区域边长
-        //cropWidth /= 2;
-        //int cropHeight = (int) (cropWidth / 1.2);
         return Bitmap.createBitmap(bitmap, x, y, w, h, null, false);
     }
 
+    /**
+     * 选择变换
+     *
+     * @param origin 原图
+     * @param alpha  旋转角度，可正可负
+     * @return 旋转后的图片
+     */
+    private Bitmap rotateBitmap(Bitmap origin, float alpha) {
+        if (origin == null) {
+            return null;
+        }
+        int width = origin.getWidth();
+        int height = origin.getHeight();
+        Matrix matrix = new Matrix();
+        matrix.setRotate(alpha);
+        // 围绕原地进行旋转
+        Bitmap newBM = Bitmap.createBitmap(origin, 0, 0, width, height, matrix, false);
+        if (newBM.equals(origin)) {
+            return newBM;
+        }
+        origin.recycle();
+        return newBM;
+    }
     // =============================================================================================
     protected int[] getRgbBytes() {
         imageConverter.run();
@@ -308,22 +336,23 @@ public abstract class CameraActivity extends AppCompatActivity
         yuvBytes[0] = bytes;
         yRowStride = previewWidth;
 
-        imageConverter =
-            new Runnable() {
-                @Override
-                public void run() {
-                    ImageUtils.convertYUV420SPToARGB8888(bytes, previewWidth, previewHeight, rgbBytes);
-                }
-            };
+        imageConverter = new Runnable() {
+            @Override
+            public void run() {
+                ImageUtils.convertYUV420SPToARGB8888(bytes, previewWidth, previewHeight, rgbBytes);
+            }
+        };
 
-        postInferenceCallback =
-            new Runnable() {
-                @Override
-                public void run() {
-                    camera.addCallbackBuffer(bytes);
-                    isProcessingFrame = false;
-                }
-            };
+        postInferenceCallback = new Runnable() {
+            @Override
+            public void run() {
+                camera.addCallbackBuffer(bytes);
+                isProcessingFrame = false;
+            }
+        };
+
+        // 处理图片
+        //LOGGER.i("[CYL] [onPreviewFrame] start processImage 327");
         processImage();
     }
 
@@ -338,6 +367,7 @@ public abstract class CameraActivity extends AppCompatActivity
             rgbBytes = new int[previewWidth * previewHeight];
         }
         try {
+            // 获取最后一张（最新）图像
             final Image image = reader.acquireLatestImage();
 
             if (image == null) {
@@ -356,11 +386,11 @@ public abstract class CameraActivity extends AppCompatActivity
             final int uvRowStride = planes[1].getRowStride();
             final int uvPixelStride = planes[1].getPixelStride();
 
-            imageConverter =
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        ImageUtils.convertYUV420ToARGB8888(
+            imageConverter = new Runnable() {
+                @Override
+                public void run() {
+                    // YUV转RGB
+                    ImageUtils.convertYUV420ToARGB8888(
                             yuvBytes[0],
                             yuvBytes[1],
                             yuvBytes[2],
@@ -370,18 +400,19 @@ public abstract class CameraActivity extends AppCompatActivity
                             uvRowStride,
                             uvPixelStride,
                             rgbBytes);
-                    }
-                };
+                }
+            };
 
-            postInferenceCallback =
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        image.close();
-                        isProcessingFrame = false;
-                    }
-                };
+            postInferenceCallback = new Runnable() {
+                @Override
+                public void run() {
+                    image.close();
+                    isProcessingFrame = false;
+                }
+            };
 
+            // 处理图片
+            //LOGGER.i("[CYL] [onPreviewFrame] start processImage 385");
             processImage();
         } catch (final Exception e) {
             LOGGER.e(e, "Exception!");
