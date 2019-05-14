@@ -110,10 +110,12 @@ public abstract class CameraActivity extends AppCompatActivity
         plusImageView = findViewById(R.id.plus);
         minusImageView = findViewById(R.id.minus);
         apiSwitchCompat = findViewById(R.id.api_info_switch);
-        bottomSheetLayout = findViewById(R.id.bottom_sheet_layout);
+        bottomSheetLayout = findViewById(R.id.bottom_sheet_layout);         // 上拉框的控件
         gestureLayout = findViewById(R.id.gesture_layout);
         sheetBehavior = BottomSheetBehavior.from(bottomSheetLayout);
         bottomSheetArrowImageView = findViewById(R.id.bottom_sheet_arrow);
+
+        userListScrollView = findViewById(R.id.user_list);                  // 展示用户列表的控件
 
         ViewTreeObserver vto = gestureLayout.getViewTreeObserver();
         vto.addOnGlobalLayoutListener(
@@ -473,6 +475,7 @@ public abstract class CameraActivity extends AppCompatActivity
         }
     }
 
+    // 获取屏幕的角度
     protected int getScreenOrientation() {
         switch (getWindowManager().getDefaultDisplay().getRotation()) {
             case Surface.ROTATION_270:

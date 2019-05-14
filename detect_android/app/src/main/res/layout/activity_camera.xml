@@ -50,11 +50,19 @@
         </android.support.v7.widget.Toolbar>
 
         <HorizontalScrollView
+            android:id="@+id/user_list"
             android:layout_width="match_parent"
             android:layout_height="200dp"
             android:layout_marginBottom="0dp"
             android:layout_alignParentBottom="true"
             android:background="@color/colorAccent">
+
+            <LinearLayout
+                android:id="@+id/item"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+            </LinearLayout>
         </HorizontalScrollView>
 
     </RelativeLayout>
